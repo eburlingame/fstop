@@ -1,0 +1,9 @@
+{{ template "header.html" . }}
+
+<form action="/upload" method="post" enctype="multipart/form-data">
+  <input type="file" name="upload" multiple /><br /><br />
+  After uploading multiple files, click Submit.<br />
+  <input type="submit" value="Submit" />
+</form>
+
+{{ template "footer.html" . }}
