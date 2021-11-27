@@ -5,11 +5,16 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
+
+	store := cookie.NewStore([]byte("mysecret"))
+	r.Use(sessions.Sessions("mysession", store))
 
 	r.LoadHTMLGlob("./templates/*")
 
@@ -20,27 +25,71 @@ func setupRouter() *gin.Engine {
 	})
 
 	r.GET("/login", func(c *gin.Context) {
+		session := sessions.Default(c)
+		username := session.Get("authed_user")
+
+		if username != nil {
+			c.Redirect(http.StatusFound, "/admin")
+			return
+		}
+
 		c.HTML(http.StatusOK, "login.html", gin.H{
 			"title": "Login",
 		})
 	})
 
 	r.POST("/login", func(c *gin.Context) {
+		session := sessions.Default(c)
+
 		type LoginFormData struct {
-			Username string `form: "username"`
-			Password string `form: "password"`
+			Username string `form:"username"`
+			Password string `form:"password"`
 		}
 
 		var formData LoginFormData
+		c.Bind(&formData)
 
-		fmt.Println(c.PostForm("username"))
-		fmt.Println(c.PostForm("password"))
+		if formData.Username == "test" && formData.Password == "test" {
+			session.Set("authed_user", "test")
+			session.Save()
 
-		c.ShouldBind(&formData)
-		fmt.Println(formData)
+			c.Redirect(http.StatusFound, "/admin")
+			return
+		}
 
-		c.HTML(http.StatusOK, "login.html", gin.H{
+		c.HTML(http.StatusForbidden, "login.html", gin.H{
 			"title": "Login",
+			"error": "Incorrect username or password",
+		})
+	})
+
+	r.GET("/admin", func(c *gin.Context) {
+		session := sessions.Default(c)
+
+		username := session.Get("authed_user")
+		if username == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		c.HTML(http.StatusOK, "admin.html", gin.H{
+			"title":    "Dashboard",
+			"username": username,
+		})
+	})
+
+	r.GET("/admin/upload", func(c *gin.Context) {
+		session := sessions.Default(c)
+
+		username := session.Get("authed_user")
+		if username == nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		c.HTML(http.StatusOK, "upload.html", gin.H{
+			"title":    "Dashboard",
+			"username": username,
 		})
 	})
 

@@ -1,5 +1,11 @@
 {{ template "header.html" . }}
 
+{{ if .error }}
+<div>
+  {{ .error }}
+</div> 
+{{ end }}
+
 <form action="/login" method="post">
   <input type="text" name="username" />
   <input type="password" name="password" />
