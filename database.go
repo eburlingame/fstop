@@ -7,11 +7,6 @@ import (
 
 // Table structs
 
-type Image struct {
-	gorm.Model
-	Filename string
-}
-
 type Database interface {
 	AddImage(image *Image) error
 }
