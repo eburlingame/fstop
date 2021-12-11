@@ -3,11 +3,13 @@ module ericburlingame.com/today
 go 1.16
 
 require (
+	github.com/aws/aws-sdk-go v1.42.22 // indirect
 	github.com/gin-contrib/multitemplate v0.0.0-20211002122701-e9e3201b87a0 // indirect
 	github.com/gin-contrib/sessions v0.0.4 // indirect
 	github.com/gin-gonic/gin v1.7.7 // indirect
 	github.com/go-playground/validator/v10 v10.9.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
