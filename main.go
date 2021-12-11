@@ -11,17 +11,26 @@ import (
 type Resources struct {
 	config  *Configuration
 	storage Storage
+	db      Database
 }
 
 func setupRouter() *gin.Engine {
 	config := GetConfig()
 
-	// Create a single AWS session (we can re use this if we're uploading many files)
 	storage, err := InitS3Storage(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	db, err := InitSqliteDatabase(config)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	resources := &Resources{
 		config:  config,
 		storage: storage,
+		db:      db,
 	}
 
 	r := gin.Default()
@@ -40,12 +49,12 @@ func setupRouter() *gin.Engine {
 
 	r.GET("/", HomeGetHandler(resources))
 
-	r.GET("/login", LoginGetHandler(resources))
-	r.POST("/login", LoginPostHandler(resources))
+	r.GET("/login", ensureNotLoggedIn(), LoginGetHandler(resources))
+	r.POST("/login", ensureNotLoggedIn(), LoginPostHandler(resources))
 
-	r.GET("/admin", AdminGetHandler(resources))
-	r.GET("/admin/upload", AdminUploadGet(resources))
-	r.POST("/admin/upload", UploadHandler(resources))
+	r.GET("/admin", ensureLoggedIn(), AdminGetHandler(resources))
+	r.GET("/admin/upload", ensureLoggedIn(), AdminUploadGet(resources))
+	r.POST("/admin/upload", ensureLoggedIn(), UploadHandler(resources))
 
 	return r
 }
