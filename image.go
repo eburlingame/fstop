@@ -19,69 +19,76 @@ type Image struct {
 	HeightPixels uint32
 
 	// EXIF data
-	BodySerialNumber      string `exifTag:"Body Serial Number"`
-	CameraModel           string `exifTag:"Model"`
-	Software              string `exifTag:"Software"`
-	LensSerialNumber      string `exifTag:"Lens Serial Number"`
-	LensMake              string `exifTag:"Lens Make"`
-	LensSpecification     string `exifTag:"Lens Specification"`
-	LensModel             string `exifTag:"Lens Model"`
-	FocalLengthIn35mmFilm string `exifTag:"Focal Length in 35mm Film"`
-
-	ShutterSpeed             string `exifTag:"Shutter Speed"`
-	Manufacturer             string `exifTag:"Manufacturer"`
-	CfaPattern               string `exifTag:"CFA Pattern"`
-	MeteringMode             string `exifTag:"Metering Mode"`
-	ExposureMode             string `exifTag:"Exposure Mode"`
-	RecommendedExposureIndex string `exifTag:"Recommended Exposure Index"`
-	FNumber                  string `exifTag:"F-Number"`
-	SceneCaptureType         string `exifTag:"Scene Capture Type"`
-	WhiteBalance             string `exifTag:"White Balance"`
-	FileSource               string `exifTag:"File Source"`
-	ExposureProgram          string `exifTag:"Exposure Program"`
-	Compression              string `exifTag:"Compression"`
-	Saturation               string `exifTag:"Saturation"`
-	FocalLength              string `exifTag:"Focal Length"`
-	Flash                    string `exifTag:"Flash"`
-	SensitivityType          string `exifTag:"Sensitivity Type"`
-	SubjectDistanceRange     string `exifTag:"Subject Distance Range"`
-	Sharpness                string `exifTag:"Sharpness"`
-	FlashPixVersion          string `exifTag:"FlashPixVersion"`
-	GainControl              string `exifTag:"Gain Control"`
-	SceneType                string `exifTag:"Scene Type"`
-	ColorSpace               string `exifTag:"Color Space"`
-	CustomRendered           string `exifTag:"Custom Rendered"`
-	Aperture                 string `exifTag:"Aperture"`
-	ExifVersion              string `exifTag:"Exif Version"`
-	SensingMethod            string `exifTag:"Sensing Method"`
-	LightSource              string `exifTag:"Light Source"`
-	ExposureBias             string `exifTag:"Exposure Bias"`
-	IsoSpeedRatings          string `exifTag:"ISO Speed Ratings"`
-	Contrast                 string `exifTag:"Contrast"`
-	ExposureTime             string `exifTag:"Exposure Time"`
-
-	FocalPlaneXResolution    float32 `exifTag:"Focal Plane X-Resolution"`
-	FocalPlaneYResolution    float32 `exifTag:"Focal Plane Y-Resolution"`
-	FocalPlaneResolutionUnit string  `exifTag:"Focal Plane Resolution Unit"`
-	XResolution              float32 `exifTag:"X-Resolution"`
-	YResolution              float32 `exifTag:"Y-Resolution"`
-	ResolutionUnit           string  `exifTag:"Resolution Unit"`
-
-	OffsetTimeForDateTimeOriginal  string    `exifTag:"Offset Time For DateTimeOriginal"`
-	OffsetTimeForDateTimeDigitized string    `exifTag:"Offset Time For DateTimeDigitized"`
-	OffsetTimeForDateTime          string    `exifTag:"Offset Time For DateTime"`
-	SubSecondTimeDigitized         string    `exifTag:"Sub-second Time (Digitized)"`
-	SubSecondTimeOriginal          string    `exifTag:"Sub-second Time (Original)"`
-	DateAndTimeDigitized           time.Time `exifTag:"Date and Time (Digitized)"`
-	DateAndTimeOriginal            time.Time `exifTag:"Date and Time (Original)"`
-	DateAndTime                    time.Time `exifTag:"Date and Time"`
+	Aperture                 float64   `exifTag:"Aperture"`
+	ApertureValue            float64   `exifTag:"ApertureValue"`
+	CameraModel              string    `exifTag:"Model"`
+	ColorSpace               string    `exifTag:"ColorSpace"`
+	DateTimeCreated          time.Time `exifTag:"DateTimeCreated"`
+	DateTimeOriginal         time.Time `exifTag:"DateTimeOriginal"`
+	DeviceManufacturer       string    `exifTag:"DeviceManufacturer"`
+	DeviceModel              string    `exifTag:"DeviceModel"`
+	DigitalCreationDateTime  time.Time `exifTag:"DigitalCreationDateTime"`
+	DigitalCreationTime      time.Time `exifTag:"DigitalCreationTime"`
+	ExposureCompensation     float64   `exifTag:"ExposureCompensation"`
+	ExposureMode             string    `exifTag:"ExposureMode"`
+	ExposureProgram          string    `exifTag:"ExposureProgram"`
+	ExposureTime             string    `exifTag:"ExposureTime"`
+	FileName                 string    `exifTag:"FileName"`
+	Flash                    string    `exifTag:"Flash"`
+	FNumber                  float64   `exifTag:"FNumber"`
+	FocalLength              string    `exifTag:"FocalLength"`
+	FocalLengthIn35mmFormat  string    `exifTag:"FocalLengthIn35mmFormat"`
+	FocalPlaneResolutionUnit string    `exifTag:"FocalPlaneResolutionUnit"`
+	FocalPlaneXResolution    float64   `exifTag:"FocalPlaneXResolution"`
+	FocalPlaneYResolution    float64   `exifTag:"FocalPlaneYResolution"`
+	Format                   string    `exifTag:"Format"`
+	GPSAltitude              string    `exifTag:"GPSAltitude"`
+	GPSDestBearing           string    `exifTag:"GPSDestBearing"`
+	GPSImgDirection          string    `exifTag:"GPSImgDirection"`
+	GPSLatitude              string    `exifTag:"GPSLatitude"`
+	GPSLongitude             string    `exifTag:"GPSLongitude"`
+	GPSPosition              string    `exifTag:"GPSPosition"`
+	GPSSpeed                 string    `exifTag:"GPSSpeed"`
+	ImageHeight              float64   `exifTag:"ImageHeight"`
+	ImageNumber              float64   `exifTag:"ImageNumber"`
+	ImageSize                string    `exifTag:"ImageSize"`
+	ImageWidth               string    `exifTag:"ImageWidth"`
+	ISO                      float64   `exifTag:"ISO"`
+	Lens                     string    `exifTag:"Lens"`
+	LensID                   string    `exifTag:"LensID"`
+	LensInfo                 string    `exifTag:"LensInfo"`
+	LensMake                 string    `exifTag:"LensMake"`
+	LensModel                string    `exifTag:"LensModel"`
+	LensSerialNumber         string    `exifTag:"LensSerialNumber"`
+	Make                     string    `exifTag:"Make"`
+	Megapixels               float64   `exifTag:"Megapixels"`
+	MIMEType                 string    `exifTag:"MIMEType"`
+	ModifyDate               string    `exifTag:"ModifyDate"`
+	ResolutionUnit           string    `exifTag:"ResolutionUnit"`
+	SerialNumber             string    `exifTag:"SerialNumber"`
+	ShutterSpeed             string    `exifTag:"ShutterSpeed"`
+	ShutterSpeedValue        string    `exifTag:"ShutterSpeedValue"`
+	Software                 string    `exifTag:"Software"`
+	XResolution              float64   `exifTag:"XResolution"`
+	YResolution              float64   `exifTag:"YResolution"`
 }
 
 func parseExifTimestamp(s string) (time.Time, error) {
-	// Exif date format: 2021:12:10 20:29:21
-	layout := "2006:01:02 15:04:05"
+	// Exif date with timezone: 2021:12:11 09:17:18-08:00
+	layout := "2006:01:02 15:04:05-07:00"
+	value, err := time.Parse(layout, s)
+	if err == nil {
+		return value, nil
+	}
 
-	return time.Parse(layout, s)
+	// Exif date format: 2021:12:10 20:29:21
+	layout = "2006:01:02 15:04:05"
+	value, err = time.Parse(layout, s)
+	if err == nil {
+		return value, nil
+	}
+
+	return time.Now(), err
 }
 
 func PopulateImageFromExif(img *Image, exifMap map[string]string) {
@@ -95,7 +102,7 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 		exifTagValue := exifMap[exifTagName]
 
 		if len(exifTagName) > 0 && len(exifTagValue) > 0 {
-			fmt.Printf("%s:\t\t\t%s\n", exifTagName, exifTagValue)
+			fmt.Printf("%s:%40v\n", exifTagName, exifTagValue)
 
 			value := reflect.ValueOf(img).Elem().FieldByName(field.Name)
 
@@ -103,18 +110,18 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 				if field.Type.Kind() == reflect.String {
 					value.SetString(exifTagValue)
 				}
-				if field.Type.Kind() == reflect.Float32 {
-					floatValue, err := strconv.ParseFloat(exifTagValue, 32)
+				if field.Type.Kind() == reflect.Float64 {
+					floatValue, err := strconv.ParseFloat(exifTagValue, 64)
 					if err != nil {
-						fmt.Printf("Unable to parse float %s", exifTagValue)
+						fmt.Printf("Unable to parse float %s\n", exifTagValue)
 						continue
 					}
 					value.SetFloat(floatValue)
 				}
-				if field.Type.Kind() == reflect.Int32 {
-					intValue, err := strconv.ParseInt(exifTagValue, 10, 32)
+				if field.Type.Kind() == reflect.Int64 {
+					intValue, err := strconv.ParseInt(exifTagValue, 10, 64)
 					if err != nil {
-						fmt.Printf("Unable to parse int %s", exifTagValue)
+						fmt.Printf("Unable to parse int %s\n", exifTagValue)
 						continue
 					}
 					value.SetInt(intValue)
@@ -124,7 +131,7 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 					timeValue, err := parseExifTimestamp(exifTagValue)
 
 					if err != nil {
-						fmt.Printf("Unable to parse date %s", exifTagValue)
+						fmt.Printf("Unable to parse date %s\n", exifTagValue)
 						continue
 					}
 

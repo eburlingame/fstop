@@ -1,14 +1,10 @@
 package main
 
 import (
-	"errors"
-	"net/http"
 	"strings"
 
 	"path/filepath"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -21,14 +17,20 @@ func GetExtension(filename string) string {
 	return filepath.Ext(filename)
 }
 
-func EnsureLoggedIn(c *gin.Context) (string, error) {
-	session := sessions.Default(c)
+func ResizeLongEdgeDimensions(width int, height int, longEdge int) (int, int) {
+	aspectRatio := float32(width) / float32(height)
 
-	username := session.Get("authed_user")
-	if username == nil {
-		c.Redirect(http.StatusFound, "/login")
-		return "", errors.New("Unauthenticated")
+	if width >= height {
+		if longEdge > width {
+			return width, height
+		}
+
+		return longEdge, int(float32(longEdge) / aspectRatio)
+	} else {
+		if longEdge > height {
+			return width, height
+		}
+
+		return int(float32(longEdge) * aspectRatio), longEdge
 	}
-
-	return username.(string), nil
 }

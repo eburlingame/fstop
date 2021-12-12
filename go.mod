@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.42.22 // indirect
+	github.com/barasher/go-exiftool v1.7.0 // indirect
 	github.com/gin-contrib/multitemplate v0.0.0-20211002122701-e9e3201b87a0 // indirect
 	github.com/gin-contrib/sessions v0.0.4 // indirect
 	github.com/gin-gonic/gin v1.7.7 // indirect
