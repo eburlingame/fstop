@@ -5,24 +5,43 @@ import (
 	"net/http"
 
 	"github.com/barasher/go-exiftool"
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/h2non/bimg"
 )
 
 func AdminUploadGet(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
+		c.HTML(http.StatusOK, "upload.html", gin.H{
+			"title": "Upload Images",
+		})
+	}
+}
 
-		username := session.Get("authed_user")
-		if username == nil {
-			c.Redirect(http.StatusFound, "/login")
+func AdminUploadSignedUrlPostHandler(r *Resources) gin.HandlerFunc {
+	type RequestBody struct {
+		Filename    string `json:"filename"`
+		ContentType string `json:"contentType"`
+	}
+
+	return func(c *gin.Context) {
+		var body RequestBody
+		c.Bind(&body)
+
+		fileId := Uuid()
+		extension := GetExtension(body.Filename)
+		bucketPath := r.config.S3UploadFolder + "/" + fileId + extension
+
+		signedUrl, err := r.storage.GetSignedUploadUrl(bucketPath, body.ContentType)
+		if err != nil {
+			c.String(500, "Error getting signed url: %s", err)
 			return
 		}
 
-		c.HTML(http.StatusOK, "upload.html", gin.H{
-			"title":    "Upload Images",
-			"username": username,
+		c.JSON(200, gin.H{
+			"method": "put",
+			"url":    signedUrl,
+			"fields": []string{},
+			"file":   gin.H{"type": body.ContentType},
 		})
 	}
 }

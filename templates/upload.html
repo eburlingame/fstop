@@ -1,8 +1,59 @@
 {{ template "header.html" . }}
 
-<form action="/admin/upload" method="post" enctype="multipart/form-data">
+<div id="drag-drop-area"></div>
+
+<script src="https://releases.transloadit.com/uppy/v2.3.1/uppy.min.js"></script>
+<script>
+  var uppy = new Uppy.Core()
+    .use(Uppy.Dashboard, {
+      inline: true,
+      target: "#drag-drop-area",
+    })
+    .use(Uppy.AwsS3, {
+      getUploadParameters(file) {
+        // Send a request to our PHP signing endpoint.
+        return fetch("/admin/upload/sign", {
+          method: "post",
+          // Send and receive JSON.
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type,
+          }),
+        })
+          .then((response) => {
+            // Parse the JSON response.
+            return response.json();
+          })
+          .then((data) => {
+            // Return an object in the correct shape.
+            return {
+              method: data.method,
+              url: data.url,
+              fields: data.fields,
+              // Provide content type header required by S3
+              headers: {
+                "Content-Type": file.type,
+              },
+            };
+          });
+      },
+    });
+
+  uppy.on("complete", (result) => {
+    console.log(
+      "Upload complete! We’ve uploaded these files:",
+      result.successful
+    );
+  });
+</script>
+
+<!-- <form action="/admin/upload" method="post" enctype="multipart/form-data">
   <input type="file" name="upload" multiple /><br /><br />
   <input type="submit" value="Submit" />
-</form>
+</form> -->
 
 {{ template "footer.html" . }}

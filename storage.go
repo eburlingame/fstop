@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -11,6 +12,7 @@ import (
 
 type Storage interface {
 	PutFile(localPath string, destPath string, contentType string) error
+	GetSignedUploadUrl(destPath string, contentType string) (string, error)
 }
 
 type S3Storage struct {
@@ -35,8 +37,6 @@ func InitS3Storage(config *Configuration) (*S3Storage, error) {
 	return storage, nil
 }
 
-// AddFileToS3 will upload a single file to S3, it will require a pre-built aws session
-// and will set file info like content type and encryption on the uploaded file.
 func (s *S3Storage) PutFile(localPath string, destPath string, contentType string) error {
 	// Open the file for use
 	file, err := os.Open(localPath)
@@ -64,4 +64,17 @@ func (s *S3Storage) PutFile(localPath string, destPath string, contentType strin
 	})
 
 	return err
+}
+
+func (s *S3Storage) GetSignedUploadUrl(destPath string, contentType string) (string, error) {
+	svc := s3.New(s.session)
+
+	req, _ := svc.PutObjectRequest(&s3.PutObjectInput{
+		Bucket:      aws.String(s.bucketName),
+		Key:         aws.String(destPath),
+		ContentType: aws.String(contentType),
+	})
+	urlStr, err := req.Presign(15 * time.Minute)
+
+	return urlStr, err
 }
