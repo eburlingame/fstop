@@ -72,7 +72,11 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 		form, _ := c.MultipartForm()
 		files := form.File["upload"]
 
-		for _, file := range files {
+		// Uploaded images
+		uploadedImages := make([]Image, len(files))
+		batchId := r.db.AddUploadBatch()
+
+		for i, file := range files {
 			fileId := Uuid()
 			extension := GetExtension(file.Filename)
 			imageFolder := "./temp/"
@@ -90,8 +94,9 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 
 			// Create the image db entry
 			image := Image{
-				FileId:      fileId,
-				IsProcessed: false,
+				FileId:        fileId,
+				IsProcessed:   false,
+				UploadBatchId: batchId,
 			}
 
 			// Populate database Image with exif tags
@@ -102,11 +107,62 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 
 			// Write the image to the database
 			r.db.AddImage(&image)
+			uploadedImages[i] = image
 
 			// Launch the uploading/resizing task
-			go processImageUpload(r, imageFolder, fileId, extension, image.MIMEType)
+			go processImageUpload(r, batchId, imageFolder, fileId, extension, image.MIMEType)
 		}
 
-		c.String(http.StatusOK, fmt.Sprintf("%d files uploaded!", len(files)))
+		c.HTML(http.StatusOK, "upload_complete.html", gin.H{
+			"title":         "Upload Images",
+			"header":        fmt.Sprintf("%d files uploaded:", len(uploadedImages)),
+			"uploadBatchId": batchId,
+		})
+	}
+}
+
+func AdminUploadStatusGetHandler(r *Resources) gin.HandlerFunc {
+	type UriParams struct {
+		BatchId string `uri:"batchId" binding:"required"`
+	}
+
+	return func(c *gin.Context) {
+		var params UriParams
+
+		err := c.BindUri(&params)
+		if err != nil {
+			c.Status(404)
+			return
+		}
+
+		var images []Image
+		r.db.GetImagesInUploadBatch(&images, params.BatchId)
+
+		type Status struct {
+			IsProcessed bool
+			URL         string
+		}
+
+		statuses := make([]Status, len(images))
+		allProcessed := true
+
+		for i, img := range images {
+			statuses[i].IsProcessed = img.IsProcessed
+
+			if img.IsProcessed {
+				var file File
+
+				r.db.GetFile(&file, img.FileId, 100)
+				statuses[i].URL = file.PublicURL
+			} else {
+				allProcessed = false
+			}
+		}
+
+		c.HTML(http.StatusOK, "upload_status_table.html", gin.H{
+			"polling":       !allProcessed,
+			"statuses":      statuses,
+			"uploadBatchId": params.BatchId,
+		})
 	}
 }

@@ -29,7 +29,7 @@ func resizeLocalImage(pngImageBuffer []byte, destFilename string, newWidth int, 
 	return bimg.Write(destFilename, resizedImage)
 }
 
-func resizeAndUploadImage(r *Resources, pngImageBuffer []byte, imageFolder string, fileId string, suffix string, width int, height int) error {
+func resizeAndUploadImage(r *Resources, pngImageBuffer []byte, batchId string, imageFolder string, fileId string, suffix string, width int, height int) error {
 	resizedFilename := fileId + suffix + ".png"
 	resizedLocalFilename := imageFolder + resizedFilename
 	storagePath := r.config.S3MediaFolder + "/" + resizedFilename
@@ -52,13 +52,14 @@ func resizeAndUploadImage(r *Resources, pngImageBuffer []byte, imageFolder strin
 	}
 
 	r.db.AddFile(&File{
-		FileId:      fileId,
-		Filename:    resizedFilename,
-		StoragePath: storagePath,
-		PublicURL:   r.config.S3BaseUrl + storagePath,
-		IsOriginal:  false,
-		Width:       uint64(width),
-		Height:      uint64(height),
+		FileId:        fileId,
+		UploadBatchId: batchId,
+		Filename:      resizedFilename,
+		StoragePath:   storagePath,
+		PublicURL:     r.config.S3BaseUrl + storagePath,
+		IsOriginal:    false,
+		Width:         uint64(width),
+		Height:        uint64(height),
 	})
 
 	// Remove the temporary file
@@ -70,7 +71,7 @@ type OutputImageSize struct {
 	Suffix   string
 }
 
-func processImageUpload(r *Resources, imageFolder string, fileId string, extension string, contentType string) {
+func processImageUpload(r *Resources, batchId string, imageFolder string, fileId string, extension string, contentType string) {
 	filename := fileId + extension
 	localPath := imageFolder + filename
 	storagePath := r.config.S3MediaFolder + "/" + filename
@@ -110,13 +111,14 @@ func processImageUpload(r *Resources, imageFolder string, fileId string, extensi
 	// Upload the original file into storage
 	r.storage.PutFile(localPath, storagePath, contentType)
 	r.db.AddFile(&File{
-		FileId:      fileId,
-		Filename:    filename,
-		StoragePath: storagePath,
-		PublicURL:   r.config.S3BaseUrl + storagePath,
-		IsOriginal:  true,
-		Width:       uint64(imgSize.Width),
-		Height:      uint64(imgSize.Height),
+		FileId:        fileId,
+		UploadBatchId: batchId,
+		Filename:      filename,
+		StoragePath:   storagePath,
+		PublicURL:     r.config.S3BaseUrl + storagePath,
+		IsOriginal:    true,
+		Width:         uint64(imgSize.Width),
+		Height:        uint64(imgSize.Height),
 	})
 
 	pngImageBuffer, err := convertImageToPng(imgBuffer)
@@ -125,7 +127,7 @@ func processImageUpload(r *Resources, imageFolder string, fileId string, extensi
 	}
 
 	// Copy the original file size into png format
-	err = resizeAndUploadImage(r, pngImageBuffer, imageFolder, fileId, "", imgSize.Width, imgSize.Height)
+	err = resizeAndUploadImage(r, pngImageBuffer, batchId, imageFolder, fileId, "", imgSize.Width, imgSize.Height)
 	if err != nil {
 		fmt.Printf("Error resizing image: %s\n", err)
 	}
@@ -134,7 +136,7 @@ func processImageUpload(r *Resources, imageFolder string, fileId string, extensi
 	for _, size := range sizes {
 		newWidth, newHeight := ResizeLongEdgeDimensions(imgSize.Width, imgSize.Height, size.LongEdge)
 
-		err := resizeAndUploadImage(r, pngImageBuffer, imageFolder, fileId, size.Suffix, newWidth, newHeight)
+		err := resizeAndUploadImage(r, pngImageBuffer, batchId, imageFolder, fileId, size.Suffix, newWidth, newHeight)
 		if err != nil {
 			fmt.Printf("Error resizing image: %s\n", err)
 			continue

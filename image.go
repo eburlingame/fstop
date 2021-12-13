@@ -12,12 +12,11 @@ import (
 const exifTag = "exifTag"
 
 type Image struct {
-	gorm.Model
-
-	FileId       string
-	IsProcessed  bool
-	WidthPixels  uint64
-	HeightPixels uint64
+	FileId        string `gorm:"primarykey"`
+	UploadBatchId string
+	IsProcessed   bool
+	WidthPixels   uint64
+	HeightPixels  uint64
 
 	// EXIF data
 	Aperture                 float64   `exifTag:"Aperture"`
@@ -73,16 +72,22 @@ type Image struct {
 	YResolution              float64   `exifTag:"YResolution"`
 }
 
+type UploadBatch struct {
+	Id   string
+	Date time.Time
+}
+
 type File struct {
 	gorm.Model
 
-	FileId      string // The uuid for the image
-	Filename    string // The filename with extension
-	StoragePath string // The path to the file, withing the storage bucket
-	PublicURL   string // The public URL where the file is available
-	IsOriginal  bool   // True if this is an original file
-	Width       uint64 // Width in pixels of the image file
-	Height      uint64 // Height in pixels of the image file
+	FileId        string // The uuid for the image
+	UploadBatchId string // The id of the batch where the file was uploaded
+	Filename      string // The filename with extension
+	StoragePath   string // The path to the file, withing the storage bucket
+	PublicURL     string // The public URL where the file is available
+	IsOriginal    bool   // True if this is an original file
+	Width         uint64 // Width in pixels of the image file
+	Height        uint64 // Height in pixels of the image file
 }
 
 func parseExifTimestamp(s string) (time.Time, error) {

@@ -1,0 +1,21 @@
+<table
+  {{if .polling }}
+  hx-get="/admin/upload/status/{{ .uploadBatchId }}"
+  hx-trigger="every 15s"
+  hx-swap="outerHTML"
+  {{end}}
+>
+  <tbody>
+    {{ range .statuses }} 
+      {{ if .IsProcessed}}
+      <tr>
+        <td><img src="{{ .URL }}" /></td>
+      </tr>
+      {{else }}
+      <tr>
+        <td>Processing...</td>
+      </tr>
+      {{end}} 
+    {{ end }}
+  </tbody>
+</table>
