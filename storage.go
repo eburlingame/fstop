@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"net/http"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,7 +10,7 @@ import (
 )
 
 type Storage interface {
-	PutFile(localPath string, destPath string) error
+	PutFile(localPath string, destPath string, contentType string) error
 }
 
 type S3Storage struct {
@@ -38,7 +37,7 @@ func InitS3Storage(config *Configuration) (*S3Storage, error) {
 
 // AddFileToS3 will upload a single file to S3, it will require a pre-built aws session
 // and will set file info like content type and encryption on the uploaded file.
-func (s *S3Storage) PutFile(localPath string, destPath string) error {
+func (s *S3Storage) PutFile(localPath string, destPath string, contentType string) error {
 	// Open the file for use
 	file, err := os.Open(localPath)
 	if err != nil {
@@ -57,11 +56,10 @@ func (s *S3Storage) PutFile(localPath string, destPath string) error {
 	_, err = s3.New(s.session).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(s.bucketName),
 		Key:                  aws.String(destPath),
-		ACL:                  aws.String("private"),
+		ACL:                  aws.String("public-read"),
 		Body:                 bytes.NewReader(buffer),
 		ContentLength:        aws.Int64(size),
-		ContentType:          aws.String(http.DetectContentType(buffer)),
-		ContentDisposition:   aws.String("attachment"),
+		ContentType:          aws.String(contentType),
 		ServerSideEncryption: aws.String("AES256"),
 	})
 

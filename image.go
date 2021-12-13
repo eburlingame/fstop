@@ -13,10 +13,11 @@ const exifTag = "exifTag"
 
 type Image struct {
 	gorm.Model
-	Filename string
 
-	WidthPixels  uint32
-	HeightPixels uint32
+	FileId       string
+	IsProcessed  bool
+	WidthPixels  uint64
+	HeightPixels uint64
 
 	// EXIF data
 	Aperture                 float64   `exifTag:"Aperture"`
@@ -28,7 +29,6 @@ type Image struct {
 	DeviceManufacturer       string    `exifTag:"DeviceManufacturer"`
 	DeviceModel              string    `exifTag:"DeviceModel"`
 	DigitalCreationDateTime  time.Time `exifTag:"DigitalCreationDateTime"`
-	DigitalCreationTime      time.Time `exifTag:"DigitalCreationTime"`
 	ExposureCompensation     float64   `exifTag:"ExposureCompensation"`
 	ExposureMode             string    `exifTag:"ExposureMode"`
 	ExposureProgram          string    `exifTag:"ExposureProgram"`
@@ -73,6 +73,18 @@ type Image struct {
 	YResolution              float64   `exifTag:"YResolution"`
 }
 
+type File struct {
+	gorm.Model
+
+	FileId      string // The uuid for the image
+	Filename    string // The filename with extension
+	StoragePath string // The path to the file, withing the storage bucket
+	PublicURL   string // The public URL where the file is available
+	IsOriginal  bool   // True if this is an original file
+	Width       uint64 // Width in pixels of the image file
+	Height      uint64 // Height in pixels of the image file
+}
+
 func parseExifTimestamp(s string) (time.Time, error) {
 	// Exif date with timezone: 2021:12:11 09:17:18-08:00
 	layout := "2006:01:02 15:04:05-07:00"
@@ -102,8 +114,6 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 		exifTagValue := exifMap[exifTagName]
 
 		if len(exifTagName) > 0 && len(exifTagValue) > 0 {
-			fmt.Printf("%s:%40v\n", exifTagName, exifTagValue)
-
 			value := reflect.ValueOf(img).Elem().FieldByName(field.Name)
 
 			if value.IsValid() {

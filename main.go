@@ -54,7 +54,7 @@ func setupRouter() *gin.Engine {
 
 	r.GET("/admin", ensureLoggedIn(), AdminGetHandler(resources))
 	r.GET("/admin/upload", ensureLoggedIn(), AdminUploadGet(resources))
-	r.POST("/admin/upload", ensureLoggedIn(), UploadHandler(resources))
+	r.POST("/admin/upload", ensureLoggedIn(), AdminUploadPostHandler(resources))
 
 	return r
 }
