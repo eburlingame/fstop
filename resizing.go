@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/h2non/bimg"
 )
@@ -17,35 +18,47 @@ func convertImageToPng(imgBuffer []byte) ([]byte, error) {
 	return pngImage, nil
 }
 
-func resizeLocalImage(pngImageBuffer []byte, destFilename string, newWidth int, newHeight int) error {
-	// Resize the image to the new size
-	resizedImage, err := bimg.NewImage(pngImageBuffer).Resize(newWidth, newHeight)
+func convertImageToJpeg(imgBuffer []byte) ([]byte, error) {
+	// Convert the image to a jpeg format
+	jpegImage, err := bimg.NewImage(imgBuffer).Convert(bimg.JPEG)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// Write image to disk
-	fmt.Printf("Writing %s\n", destFilename)
-	return bimg.Write(destFilename, resizedImage)
+	return jpegImage, nil
 }
 
-func resizeAndUploadImage(r *Resources, pngImageBuffer []byte, batchId string, imageFolder string, fileId string, suffix string, width int, height int) error {
-	resizedFilename := fileId + suffix + ".png"
-	resizedLocalFilename := imageFolder + resizedFilename
-	storagePath := r.config.S3MediaFolder + "/" + resizedFilename
-	pngContentType := "image/png"
-
-	// Resize the image
-	err := resizeLocalImage(pngImageBuffer, resizedLocalFilename, width, height)
-	defer os.Remove(resizedLocalFilename)
-
+func resize(jpegBuffer []byte, newWidth int, newHeight int) ([]byte, error) {
+	// Resize the image to the new size
+	resizedImage, err := bimg.NewImage(jpegBuffer).Resize(newWidth, newHeight)
 	if err != nil {
-		fmt.Printf("Error writing resized image: %s\n", err)
-		return err
+		return nil, err
 	}
 
+	return resizedImage, nil
+}
+
+func writeNewImage(r *Resources, jpegBuffer []byte, batchId string, imageFolder string, fileId string, suffix string, width int, height int) error {
+	resizedFilename := fileId + suffix + ".jpeg"
+	resizedLocalFilename := imageFolder + resizedFilename
+	storagePath := r.config.S3MediaFolder + "/" + resizedFilename
+	jpegContentType := "image/jpeg"
+
+	// Resize the image
+	// jpegBuffer, err := convertImageToPng(jpegBuffer)
+	// if err != nil {
+	// 	fmt.Printf("Error writing resized image: %s\n", err)
+	// 	return err
+	// }
+
+	// Write the image to disk
+	fmt.Printf("Writing %s\n", resizedLocalFilename)
+	bimg.Write(resizedLocalFilename, jpegBuffer)
+
+	defer os.Remove(resizedLocalFilename)
+
 	// Upload the image to the storage adapter
-	err = r.storage.PutFile(resizedLocalFilename, storagePath, pngContentType)
+	err := r.storage.PutFile(resizedLocalFilename, storagePath, jpegContentType)
 	if err != nil {
 		fmt.Printf("Error uploading file to storage: %s\n", err)
 		return err
@@ -96,20 +109,27 @@ func processImageUpload(r *Resources, batchId string, imageFolder string, fileId
 	}
 
 	// Load image into buffer for resizing
+	start := time.Now()
 	imgBuffer, err := bimg.Read(localPath)
 	if err != nil {
 		fmt.Printf("Unable to read image file %s: %s\n", localPath, err)
 		return
 	}
+	fmt.Printf("Reading image took %s\n", time.Since(start))
 
+	start = time.Now()
 	imgSize, err := bimg.Size(imgBuffer)
 	if err != nil {
 		fmt.Printf("Unable to read image size for %s: %s\n", fileId, err)
 		return
 	}
+	fmt.Printf("Sizing image took %s\n", time.Since(start))
 
 	// Upload the original file into storage
+	start = time.Now()
 	r.storage.PutFile(localPath, storagePath, contentType)
+	fmt.Printf("Upload original image took %s\n", time.Since(start))
+
 	r.db.AddFile(&File{
 		FileId:        fileId,
 		UploadBatchId: batchId,
@@ -121,13 +141,19 @@ func processImageUpload(r *Resources, batchId string, imageFolder string, fileId
 		Height:        uint64(imgSize.Height),
 	})
 
-	pngImageBuffer, err := convertImageToPng(imgBuffer)
+	start = time.Now()
+	jpegBuffer, err := convertImageToJpeg(imgBuffer)
+	fmt.Printf("Converting to jpeg took %s\n", time.Since(start))
+
 	if err != nil {
 		fmt.Printf("Error converting to png: %s\n", err)
 	}
 
 	// Copy the original file size into png format
-	err = resizeAndUploadImage(r, pngImageBuffer, batchId, imageFolder, fileId, "", imgSize.Width, imgSize.Height)
+	start = time.Now()
+	err = writeNewImage(r, jpegBuffer, batchId, imageFolder, fileId, "", imgSize.Width, imgSize.Height)
+	fmt.Printf("Writing original took %s\n", time.Since(start))
+
 	if err != nil {
 		fmt.Printf("Error resizing image: %s\n", err)
 	}
@@ -136,9 +162,21 @@ func processImageUpload(r *Resources, batchId string, imageFolder string, fileId
 	for _, size := range sizes {
 		newWidth, newHeight := ResizeLongEdgeDimensions(imgSize.Width, imgSize.Height, size.LongEdge)
 
-		err := resizeAndUploadImage(r, pngImageBuffer, batchId, imageFolder, fileId, size.Suffix, newWidth, newHeight)
+		start = time.Now()
+		resizedJpegBuffer, err := resize(jpegBuffer, newWidth, newHeight)
+		fmt.Printf("Resizing took %s\n", time.Since(start))
+
 		if err != nil {
 			fmt.Printf("Error resizing image: %s\n", err)
+			continue
+		}
+
+		start = time.Now()
+		err = writeNewImage(r, resizedJpegBuffer, batchId, imageFolder, fileId, size.Suffix, newWidth, newHeight)
+		fmt.Printf("Writing resized image took %s\n", time.Since(start))
+
+		if err != nil {
+			fmt.Printf("Error writing image: %s\n", err)
 			continue
 		}
 	}
