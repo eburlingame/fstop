@@ -58,6 +58,8 @@ func setupRouter() *gin.Engine {
 	r.POST("/admin/upload", ensureLoggedIn(), AdminUploadPostHandler(resources))
 	r.GET("/admin/upload/status/:batchId", ensureLoggedIn(), AdminUploadStatusGetHandler(resources))
 
+	r.GET("/queue", ensureLoggedIn(), QueueGetHandler(resources))
+
 	return r
 }
 

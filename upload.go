@@ -73,13 +73,13 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 		files := form.File["upload"]
 
 		// Uploaded images
+		imageFolder := "./temp/"
 		uploadedImages := make([]Image, len(files))
 		batchId := r.db.AddUploadBatch()
 
 		for i, file := range files {
 			fileId := Uuid()
 			extension := GetExtension(file.Filename)
-			imageFolder := "./temp/"
 			localPath := imageFolder + fileId + extension
 
 			// Upload the file to specific dst.

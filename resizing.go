@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
+	"time"
 
 	"github.com/h2non/bimg"
 )
@@ -148,4 +150,42 @@ func processImageUpload(r *Resources, batchId string, imageFolder string, fileId
 
 	r.db.UpdateImageProcessedStatus(fileId, true)
 	fmt.Printf("Resizing %s complete\n", localPath)
+}
+
+type BatchProcessImage struct {
+	FileId    string
+	Extension string
+	MimeType  string
+}
+
+type ImageProcessingTask struct {
+	r           *Resources
+	batchId     string
+	imageFolder string
+	images      []BatchProcessImage
+}
+
+func imageWorker(queue chan ImageProcessingTask) {
+	for {
+		tsk := <-queue
+		fmt.Printf("%v\n", tsk)
+
+		time.Sleep(time.Second * time.Duration(rand.Float32()*5))
+	}
+}
+
+func ProcessImageBatch(r *Resources, batchId string, imageFolder string, images []BatchProcessImage) {
+	queue := make(chan Task)
+
+	for i := 0; i < 10; i++ {
+		go func(i int) {
+			queue <- Task{
+				Id: fmt.Sprintf("Task #%d", i),
+			}
+		}(i)
+	}
+
+	for i := 0; i < 3; i++ {
+		go processMessages(queue)
+	}
 }
