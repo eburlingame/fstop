@@ -11,11 +11,11 @@ import (
 
 type Database interface {
 	GetImage(image *Image, fileId string) error
-	GetImagesInUploadBatch(images *[]Image, batchId string)
+	GetImagesInImportBatch(images *[]Image, batchId string)
 	AddImage(image *Image) error
 	UpdateImageProcessedStatus(fileId string, isProcessed bool) error
 
-	AddUploadBatch() string
+	AddImportBatch() string
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
@@ -34,7 +34,7 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	// Migrate the schema
 	db.AutoMigrate(&Image{})
 	db.AutoMigrate(&File{})
-	db.AutoMigrate(&UploadBatch{})
+	db.AutoMigrate(&ImportBatch{})
 
 	base := &SqliteDatabase{
 		db: db,
@@ -74,10 +74,10 @@ func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error 
 	return nil
 }
 
-func (d *SqliteDatabase) AddUploadBatch() string {
+func (d *SqliteDatabase) AddImportBatch() string {
 	id := Uuid()
 
-	d.db.Create(&UploadBatch{
+	d.db.Create(&ImportBatch{
 		Id:   id,
 		Date: time.Now(),
 	})
@@ -85,6 +85,6 @@ func (d *SqliteDatabase) AddUploadBatch() string {
 	return id
 }
 
-func (d *SqliteDatabase) GetImagesInUploadBatch(images *[]Image, batchId string) {
-	d.db.Where("upload_batch_id = ?", batchId).Find(&images)
+func (d *SqliteDatabase) GetImagesInImportBatch(images *[]Image, batchId string) {
+	d.db.Where("import_batch_id = ?", batchId).Find(&images)
 }

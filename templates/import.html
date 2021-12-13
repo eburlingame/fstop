@@ -1,0 +1,21 @@
+{{ template "header.html" . }}
+
+<h2>{{ .header }}</h2>
+
+<form method="post" action="/admin/import">
+  <table>
+    <tbody>
+      {{ range $index, $fname := .files }}
+      <tr>
+        <td>
+          <input type="hidden" name="names" value="{{ $fname }}"></input>
+          <input type="checkbox" name="enabled"  checked>{{ $fname }}</input></td>
+      </tr>
+      {{ end }}
+    </tbody>
+  </table>
+
+  <button type="submit">Import Photos</button>
+</form>
+
+{{ template "footer.html" . }}

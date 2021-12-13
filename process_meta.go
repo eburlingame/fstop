@@ -1,0 +1,78 @@
+package main
+
+import (
+	"fmt"
+	"sync"
+
+	"github.com/barasher/go-exiftool"
+	"github.com/h2non/bimg"
+)
+
+func populateImageSize(image *Image, buffer []byte) error {
+	imgSize, err := bimg.Size(buffer)
+	if err != nil {
+		fmt.Printf("Unable to read image size %s\n", err)
+		return err
+	}
+
+	image.HeightPixels = uint64(imgSize.Height)
+	image.WidthPixels = uint64(imgSize.Width)
+
+	return nil
+}
+
+func extractExif(localPath string) (map[string]string, error) {
+	et, err := exiftool.NewExiftool()
+	if err != nil {
+		fmt.Printf("Error when intializing: %v\n", err)
+		return nil, err
+	}
+	defer et.Close()
+
+	fileInfos := et.ExtractMetadata(localPath)
+
+	valueMap := map[string]string{}
+	for tagName := range fileInfos[0].Fields {
+		valueMap[tagName], _ = fileInfos[0].GetString(tagName)
+	}
+
+	return valueMap, nil
+}
+
+func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file []byte) error {
+	defer wg.Done()
+
+	extension := GetExtension(image.UploadFilePath)
+	tempPath := "temp/" + image.FileId + extension
+
+	// Write to temporary file
+	bimg.Write(tempPath, file)
+
+	// Extract image EXIF data
+	tags, err := extractExif(tempPath)
+	if err != nil {
+		fmt.Printf("Error extracting EXIF data: %s\n", err)
+		return err
+	}
+
+	// Create the image db entry
+	imageRecord := Image{
+		FileId:        image.FileId,
+		IsProcessed:   false,
+		ImportBatchId: image.ImportBatchId,
+	}
+
+	// Populate database Image with exif tags
+	PopulateImageFromExif(&imageRecord, tags)
+
+	// Populate image sizes
+	err = populateImageSize(&imageRecord, file)
+	if err != nil {
+		return err
+	}
+
+	// Write the image to the database
+	r.db.AddImage(&imageRecord)
+
+	return nil
+}

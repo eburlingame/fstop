@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"os"
+	"io/ioutil"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,8 +11,11 @@ import (
 )
 
 type Storage interface {
-	PutFile(localPath string, destPath string, contentType string) error
+	PutFile(contents []byte, destPath string, contentType string) error
 	GetSignedUploadUrl(destPath string, contentType string) (string, error)
+	ListFiles(prefix string) ([]string, error)
+	GetFile(key string) ([]byte, error)
+	DeleteFile(key string) error
 }
 
 type S3Storage struct {
@@ -37,27 +40,14 @@ func InitS3Storage(config *Configuration) (*S3Storage, error) {
 	return storage, nil
 }
 
-func (s *S3Storage) PutFile(localPath string, destPath string, contentType string) error {
-	// Open the file for use
-	file, err := os.Open(localPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
+func (s *S3Storage) PutFile(contents []byte, destPath string, contentType string) error {
+	size := int64(len(contents))
 
-	// Get file size and read the file content into a buffer
-	fileInfo, _ := file.Stat()
-	var size int64 = fileInfo.Size()
-	buffer := make([]byte, size)
-	file.Read(buffer)
-
-	// Config settings: this is where you choose the bucket, filename, content-type etc.
-	// of the file you're uploading.
-	_, err = s3.New(s.session).PutObject(&s3.PutObjectInput{
+	_, err := s3.New(s.session).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(s.bucketName),
 		Key:                  aws.String(destPath),
 		ACL:                  aws.String("public-read"),
-		Body:                 bytes.NewReader(buffer),
+		Body:                 bytes.NewReader(contents),
 		ContentLength:        aws.Int64(size),
 		ContentType:          aws.String(contentType),
 		ServerSideEncryption: aws.String("AES256"),
@@ -77,4 +67,48 @@ func (s *S3Storage) GetSignedUploadUrl(destPath string, contentType string) (str
 	urlStr, err := req.Presign(15 * time.Minute)
 
 	return urlStr, err
+}
+
+func (s *S3Storage) ListFiles(prefix string) ([]string, error) {
+	svc := s3.New(s.session)
+
+	list, err := svc.ListObjects(&s3.ListObjectsInput{
+		Bucket: aws.String(s.bucketName),
+		Prefix: aws.String(prefix),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(list.Contents))
+	for i, object := range list.Contents {
+		names[i] = *object.Key
+	}
+
+	return names, nil
+}
+
+func (s *S3Storage) GetFile(key string) ([]byte, error) {
+	svc := s3.New(s.session)
+
+	obj, err := svc.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(s.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return ioutil.ReadAll(obj.Body)
+}
+
+func (s *S3Storage) DeleteFile(key string) error {
+	svc := s3.New(s.session)
+
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucketName),
+		Key:    aws.String(key),
+	})
+
+	return err
 }

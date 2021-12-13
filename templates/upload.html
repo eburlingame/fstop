@@ -44,6 +44,8 @@
     });
 
   uppy.on("complete", (result) => {
+    document.getElementById("nextLink").setAttribute("class", "");
+
     console.log(
       "Upload complete! We’ve uploaded these files:",
       result.successful
@@ -51,9 +53,12 @@
   });
 </script>
 
-<!-- <form action="/admin/upload" method="post" enctype="multipart/form-data">
-  <input type="file" name="upload" multiple /><br /><br />
-  <input type="submit" value="Submit" />
-</form> -->
+<style>
+  .hidden {
+    display: none;
+  }
+</style>
+
+<a id="nextLink" href="/admin/import" class="hidden">Import photos</a>
 
 {{ template "footer.html" . }}

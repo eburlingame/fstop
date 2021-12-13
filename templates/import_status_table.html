@@ -1,6 +1,6 @@
 <table
   {{if .polling }}
-  hx-get="/admin/upload/status/{{ .uploadBatchId }}"
+  hx-get="/admin/import/status/{{ .importBatchId }}"
   hx-trigger="every 15s"
   hx-swap="outerHTML"
   {{end}}

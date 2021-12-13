@@ -17,6 +17,13 @@ func GetExtension(filename string) string {
 	return filepath.Ext(filename)
 }
 
+func GetLongestEdge(width int, height int) int {
+	if width > height {
+		return width
+	}
+	return height
+}
+
 func ResizeLongEdgeDimensions(width int, height int, longEdge int) (int, int) {
 	aspectRatio := float32(width) / float32(height)
 

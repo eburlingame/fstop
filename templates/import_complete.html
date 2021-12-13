@@ -3,7 +3,7 @@
 <h2>{{ .header }}</h2>
 
 <table
-  hx-get="/admin/upload/status/{{ .uploadBatchId }}"
+  hx-get="/admin/import/status/{{ .importBatchId }}"
   hx-trigger="load"
   hx-swap="outerHTML"
 />
