@@ -77,6 +77,8 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 		uploadedImages := make([]Image, len(files))
 		batchId := r.db.AddUploadBatch()
 
+		imageBatch := make([]BatchProcessImage, len(files))
+
 		for i, file := range files {
 			fileId := Uuid()
 			extension := GetExtension(file.Filename)
@@ -109,9 +111,16 @@ func AdminUploadPostHandler(r *Resources) gin.HandlerFunc {
 			r.db.AddImage(&image)
 			uploadedImages[i] = image
 
-			// Launch the uploading/resizing task
-			go processImageUpload(r, batchId, imageFolder, fileId, extension, image.MIMEType)
+			// go processImageUpload(r, batchId, imageFolder, fileId, extension, image.MIMEType)
+			imageBatch[i] = BatchProcessImage{
+				FileId:    fileId,
+				Extension: extension,
+				MimeType:  image.MIMEType,
+			}
 		}
+
+		// Kick off the image processing queue
+		go ProcessImageBatch(r, batchId, imageFolder, imageBatch)
 
 		c.HTML(http.StatusOK, "upload_complete.html", gin.H{
 			"title":         "Upload Images",

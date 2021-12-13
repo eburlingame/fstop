@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
-	"time"
 
 	"github.com/h2non/bimg"
 )
@@ -162,30 +160,41 @@ type ImageProcessingTask struct {
 	r           *Resources
 	batchId     string
 	imageFolder string
-	images      []BatchProcessImage
+	image       BatchProcessImage
 }
 
-func imageWorker(queue chan ImageProcessingTask) {
-	for {
-		tsk := <-queue
-		fmt.Printf("%v\n", tsk)
-
-		time.Sleep(time.Second * time.Duration(rand.Float32()*5))
+func imageWorker(id int, queue chan ImageProcessingTask) {
+	for tsk := range queue {
+		fmt.Printf("Processing image %s\n", tsk.image.FileId)
+		processImageUpload(tsk.r, tsk.batchId, tsk.imageFolder, tsk.image.FileId, tsk.image.Extension, tsk.image.MimeType)
 	}
+	fmt.Printf("Worker %d done", id)
 }
+
+const NUM_WORKERS = 10
 
 func ProcessImageBatch(r *Resources, batchId string, imageFolder string, images []BatchProcessImage) {
-	queue := make(chan Task)
+	queue := make(chan ImageProcessingTask)
 
-	for i := 0; i < 10; i++ {
-		go func(i int) {
-			queue <- Task{
-				Id: fmt.Sprintf("Task #%d", i),
+	go func() {
+		for _, img := range images {
+			// loop over all items
+			queue <- ImageProcessingTask{
+				r:           r,
+				batchId:     batchId,
+				imageFolder: imageFolder,
+				image:       img,
 			}
-		}(i)
+		}
+		close(queue)
+	}()
+
+	numWorkers := NUM_WORKERS
+	if len(images) < numWorkers {
+		numWorkers = len(images)
 	}
 
-	for i := 0; i < 3; i++ {
-		go processMessages(queue)
+	for i := 0; i < numWorkers; i++ {
+		go imageWorker(i, queue)
 	}
 }
