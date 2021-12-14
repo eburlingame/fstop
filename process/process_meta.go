@@ -1,9 +1,12 @@
-package main
+package process
 
 import (
 	"fmt"
 	"os"
 	"sync"
+
+	. "github.com/eburlingame/fstop/resources"
+	. "github.com/eburlingame/fstop/utils"
 
 	"github.com/barasher/go-exiftool"
 	"github.com/h2non/bimg"
@@ -74,7 +77,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	}
 
 	// Write the image to the database
-	r.db.AddImage(&imageRecord)
+	r.Db.AddImage(&imageRecord)
 
 	return nil
 }

@@ -1,8 +1,10 @@
-package main
+package process
 
 import (
 	"fmt"
 	"sync"
+
+	. "github.com/eburlingame/fstop/resources"
 )
 
 type OutputImageSize struct {
@@ -24,7 +26,7 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 
 	wg := new(sync.WaitGroup)
 
-	fileContents, err := r.storage.GetFile(image.UploadFilePath)
+	fileContents, err := r.Storage.GetFile(image.UploadFilePath)
 	if err != nil || len(fileContents) == 0 {
 		fmt.Printf("Error getting image from storage: %s\n", err)
 		return
@@ -43,8 +45,8 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 
 	wg.Wait()
 
-	r.db.UpdateImageProcessedStatus(image.FileId, true)
+	r.Db.UpdateImageProcessedStatus(image.FileId, true)
 
 	fmt.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
-	r.storage.DeleteFile(image.UploadFilePath)
+	r.Storage.DeleteFile(image.UploadFilePath)
 }

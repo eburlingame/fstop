@@ -3,16 +3,14 @@ package main
 import (
 	"log"
 
+	. "github.com/eburlingame/fstop/handlers"
+	. "github.com/eburlingame/fstop/middleware"
+	. "github.com/eburlingame/fstop/resources"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
-
-type Resources struct {
-	config  *Configuration
-	storage Storage
-	db      Database
-}
 
 func setupRouter() *gin.Engine {
 	config := GetConfig()
@@ -28,9 +26,9 @@ func setupRouter() *gin.Engine {
 	}
 
 	resources := &Resources{
-		config:  config,
-		storage: storage,
-		db:      db,
+		Config:  config,
+		Storage: storage,
+		Db:      db,
 	}
 
 	r := gin.Default()
@@ -48,21 +46,19 @@ func setupRouter() *gin.Engine {
 	}
 
 	r.GET("/", HomeGetHandler(resources))
-	r.GET("/image/:imageId", ensureLoggedIn(), ImageGetHandler(resources))
+	r.GET("/image/:imageId", EnsureLoggedIn(), ImageGetHandler(resources))
 
-	r.GET("/login", ensureNotLoggedIn(), LoginGetHandler(resources))
-	r.POST("/login", ensureNotLoggedIn(), LoginPostHandler(resources))
+	r.GET("/login", EnsureNotLoggedIn(), LoginGetHandler(resources))
+	r.POST("/login", EnsureNotLoggedIn(), LoginPostHandler(resources))
 
-	r.GET("/admin", ensureLoggedIn(), AdminGetHandler(resources))
+	r.GET("/admin", EnsureLoggedIn(), AdminGetHandler(resources))
 
-	r.GET("/admin/upload", ensureLoggedIn(), AdminUploadGet(resources))
-	r.POST("/admin/upload/sign", ensureLoggedIn(), AdminUploadSignedUrlPostHandler(resources))
+	r.GET("/admin/upload", EnsureLoggedIn(), AdminUploadGet(resources))
+	r.POST("/admin/upload/sign", EnsureLoggedIn(), AdminUploadSignedUrlPostHandler(resources))
 
-	r.GET("/admin/import", ensureLoggedIn(), AdminImportGet(resources))
-	r.POST("/admin/import", ensureLoggedIn(), AdminImportPostHandler(resources))
-	r.GET("/admin/import/status/:batchId", ensureLoggedIn(), AdminImportStatusGetHandler(resources))
-
-	r.GET("/queue", ensureLoggedIn(), QueueGetHandler(resources))
+	r.GET("/admin/import", EnsureLoggedIn(), AdminImportGet(resources))
+	r.POST("/admin/import", EnsureLoggedIn(), AdminImportPostHandler(resources))
+	r.GET("/admin/import/status/:batchId", EnsureLoggedIn(), AdminImportStatusGetHandler(resources))
 
 	return r
 }

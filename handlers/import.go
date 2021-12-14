@@ -1,23 +1,27 @@
-package main
+package handlers
 
 import (
 	"fmt"
 	"net/http"
 	"strings"
 
+	. "github.com/eburlingame/fstop/process"
+	. "github.com/eburlingame/fstop/resources"
+	. "github.com/eburlingame/fstop/utils"
+
 	"github.com/gin-gonic/gin"
 )
 
 func AdminImportGet(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		files, err := r.storage.ListFiles(r.config.S3UploadFolder)
+		files, err := r.Storage.ListFiles(r.Config.S3UploadFolder)
 		if err != nil {
 			c.String(500, "Error listing files: %s\n", err)
 			return
 		}
 
 		for i := range files {
-			files[i] = strings.Replace(files[i], r.config.S3UploadFolder+"/", "", 1)
+			files[i] = strings.Replace(files[i], r.Config.S3UploadFolder+"/", "", 1)
 		}
 
 		c.HTML(http.StatusOK, "import.html", gin.H{
@@ -38,7 +42,7 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 			images = append(images, ImageImport{
 				FileId:         Uuid(),
 				ImportBatchId:  importBatchId,
-				UploadFilePath: r.config.S3UploadFolder + "/" + value,
+				UploadFilePath: r.Config.S3UploadFolder + "/" + value,
 
 				Sizes: []OutputImageSize{
 					{
@@ -103,7 +107,7 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 		fmt.Printf("Batchid: %s\n", params.BatchId)
 
 		var images []Image
-		r.db.GetImagesInImportBatch(&images, params.BatchId)
+		r.Db.GetImagesInImportBatch(&images, params.BatchId)
 		fmt.Println(images)
 
 		type Status struct {
@@ -120,7 +124,7 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 			if img.IsProcessed {
 				var file File
 
-				r.db.GetFile(&file, img.FileId, 100)
+				r.Db.GetFile(&file, img.FileId, 100)
 				statuses[i].URL = file.PublicURL
 			} else {
 				allProcessed = false

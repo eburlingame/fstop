@@ -1,4 +1,4 @@
-module ericburlingame.com/today
+module github.com/eburlingame/fstop
 
 go 1.16
 

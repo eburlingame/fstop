@@ -1,7 +1,9 @@
-package main
+package handlers
 
 import (
 	"net/http"
+
+	. "github.com/eburlingame/fstop/resources"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"

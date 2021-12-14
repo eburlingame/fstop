@@ -1,9 +1,11 @@
-package main
+package resources
 
 import (
 	"log"
 	"os"
 	"time"
+
+	. "github.com/eburlingame/fstop/utils"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -109,7 +111,7 @@ func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int
 func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error {
 	d.db.
 		Order("width asc").
-		Where("file_id = ? AND width > ? AND is_original = ?", fileId, minWidth, false).
+		Where("file_id = ? AND width > ?", fileId, minWidth).
 		First(file)
 
 	return nil

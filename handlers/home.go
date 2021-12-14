@@ -1,7 +1,9 @@
-package main
+package handlers
 
 import (
 	"net/http"
+
+	. "github.com/eburlingame/fstop/resources"
 
 	"github.com/gin-gonic/gin"
 )
@@ -10,7 +12,7 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var files []File
 
-		r.db.ListLatestPhotos(&files, 400, 20, 0)
+		r.Db.ListLatestPhotos(&files, 400, 20, 0)
 
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"title": "Main website",
@@ -34,7 +36,7 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		var file File
-		r.db.GetFile(&file, params.ImageId, 1000)
+		r.Db.GetFile(&file, params.ImageId, 1000)
 
 		c.HTML(http.StatusOK, "image.html", gin.H{
 			"file": file,

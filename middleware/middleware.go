@@ -1,4 +1,4 @@
-package main
+package middleware
 
 import (
 	"net/http"
@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func ensureLoggedIn() gin.HandlerFunc {
+func EnsureLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 
@@ -19,7 +19,7 @@ func ensureLoggedIn() gin.HandlerFunc {
 	}
 }
 
-func ensureNotLoggedIn() gin.HandlerFunc {
+func EnsureNotLoggedIn() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 

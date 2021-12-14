@@ -1,6 +1,10 @@
-package main
+package process
 
-import "fmt"
+import (
+	"fmt"
+
+	. "github.com/eburlingame/fstop/resources"
+)
 
 const NUM_WORKERS = 10
 

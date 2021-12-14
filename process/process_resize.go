@@ -1,9 +1,12 @@
-package main
+package process
 
 import (
 	"fmt"
 	"net/http"
 	"sync"
+
+	. "github.com/eburlingame/fstop/resources"
+	. "github.com/eburlingame/fstop/utils"
 
 	"github.com/h2non/bimg"
 )
@@ -65,7 +68,7 @@ func getOriginalStorageFilename(r *Resources, image *ImageImport) string {
 }
 
 func getStoragePath(r *Resources, filename string) string {
-	return r.config.S3MediaFolder + "/" + filename
+	return r.Config.S3MediaFolder + "/" + filename
 }
 
 func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, size OutputImageSize, file []byte) error {
@@ -109,15 +112,15 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 	storageFilename := getResizedStorageFilename(r, image, size)
 	storagePath := getStoragePath(r, storageFilename)
 
-	r.storage.PutFile(outputImage, storagePath, size.ContentType)
+	r.Storage.PutFile(outputImage, storagePath, size.ContentType)
 
 	// Insert a FileRecord
-	r.db.AddFile(&File{
+	r.Db.AddFile(&File{
 		FileId:        image.FileId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,
 		StoragePath:   storagePath,
-		PublicURL:     r.config.S3BaseUrl + storagePath,
+		PublicURL:     r.Config.S3BaseUrl + storagePath,
 		IsOriginal:    false,
 		Width:         uint64(width),
 		Height:        uint64(height),
@@ -141,15 +144,15 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 	storageFilename := getOriginalStorageFilename(r, image)
 	storagePath := getStoragePath(r, storageFilename)
 
-	r.storage.PutFile(outputImage, storagePath, http.DetectContentType(file))
+	r.Storage.PutFile(outputImage, storagePath, http.DetectContentType(file))
 
 	// Insert a FileRecord
-	r.db.AddFile(&File{
+	r.Db.AddFile(&File{
 		FileId:        image.FileId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,
 		StoragePath:   storagePath,
-		PublicURL:     r.config.S3BaseUrl + storagePath,
+		PublicURL:     r.Config.S3BaseUrl + storagePath,
 		IsOriginal:    true,
 		Width:         uint64(width),
 		Height:        uint64(height),
