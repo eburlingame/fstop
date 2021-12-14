@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	. "github.com/eburlingame/fstop/utils"
+	. "github.com/eburlingame/fstop/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -15,14 +15,12 @@ import (
 // Table structs
 
 type Database interface {
-	GetImage(image *Image, fileId string) error
+	GetImage(image *Image, imageId string) error
 	GetImagesInImportBatch(images *[]Image, batchId string)
 	AddImage(image *Image) error
-	UpdateImageProcessedStatus(fileId string, isProcessed bool) error
+	UpdateImageProcessedStatus(imageId string, isProcessed bool) error
 
 	ListLatestPhotos(photos *[]File, minWidth int, limit int, offset int) error
-
-	AddImportBatch() string
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
@@ -53,7 +51,6 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	// Migrate the schema
 	db.AutoMigrate(&Image{})
 	db.AutoMigrate(&File{})
-	db.AutoMigrate(&ImportBatch{})
 
 	base := &SqliteDatabase{
 		db: db,
@@ -63,7 +60,7 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 }
 
 func (d *SqliteDatabase) GetImage(image *Image, fileId string) error {
-	d.db.First(&image, "file_id = ?", fileId)
+	d.db.First(&image, "image_id = ?", fileId)
 	return nil
 }
 
@@ -76,7 +73,7 @@ func (d *SqliteDatabase) AddImage(image *Image) error {
 func (d *SqliteDatabase) UpdateImageProcessedStatus(fileId string, isProcessed bool) error {
 	var image Image
 
-	d.db.First(&image, "file_id = ?", fileId)
+	d.db.First(&image, "image_id = ?", fileId)
 	d.db.Model(&image).Update("IsProcessed", isProcessed)
 
 	return nil
@@ -95,11 +92,11 @@ func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int
 		(SELECT MIN(width)
 			FROM files f 
 			WHERE f.width > ?
-			GROUP BY f.file_id
+			GROUP BY f.image_id
 			ORDER BY f.width ASC) AS smallest_file
 
 		FROM files
-		JOIN images i ON i.file_id = files.file_id 
+		JOIN images i ON i.image_id = files.image_id 
 		WHERE files.width = smallest_file
 		ORDER BY date_time_original DESC
 		`, minWidth).
@@ -111,21 +108,10 @@ func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int
 func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error {
 	d.db.
 		Order("width asc").
-		Where("file_id = ? AND width > ?", fileId, minWidth).
+		Where("image_id = ? AND width > ?", fileId, minWidth).
 		First(file)
 
 	return nil
-}
-
-func (d *SqliteDatabase) AddImportBatch() string {
-	id := Uuid()
-
-	d.db.Create(&ImportBatch{
-		Id:   id,
-		Date: time.Now(),
-	})
-
-	return id
 }
 
 func (d *SqliteDatabase) GetImagesInImportBatch(images *[]Image, batchId string) {

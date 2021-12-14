@@ -15,7 +15,7 @@ type OutputImageSize struct {
 	ContentType string
 }
 type ImageImport struct {
-	FileId         string
+	ImageId        string
 	ImportBatchId  string
 	UploadFilePath string
 	Sizes          []OutputImageSize
@@ -45,7 +45,7 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 
 	wg.Wait()
 
-	r.Db.UpdateImageProcessedStatus(image.FileId, true)
+	r.Db.UpdateImageProcessedStatus(image.ImageId, true)
 
 	fmt.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
 	r.Storage.DeleteFile(image.UploadFilePath)

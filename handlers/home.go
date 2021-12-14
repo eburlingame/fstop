@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 
 	"github.com/gin-gonic/gin"

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/process"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
@@ -40,7 +41,7 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 
 		for _, value := range names {
 			images = append(images, ImageImport{
-				FileId:         Uuid(),
+				ImageId:        Uuid(),
 				ImportBatchId:  importBatchId,
 				UploadFilePath: r.Config.S3UploadFolder + "/" + value,
 
@@ -124,7 +125,7 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 			if img.IsProcessed {
 				var file File
 
-				r.Db.GetFile(&file, img.FileId, 100)
+				r.Db.GetFile(&file, img.ImageId, 100)
 				statuses[i].URL = file.PublicURL
 			} else {
 				allProcessed = false

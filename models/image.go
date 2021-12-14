@@ -1,18 +1,16 @@
-package resources
+package models
 
 import (
 	"fmt"
 	"reflect"
 	"strconv"
 	"time"
-
-	"gorm.io/gorm"
 )
 
 const exifTag = "exifTag"
 
 type Image struct {
-	FileId        string `gorm:"primarykey"`
+	ImageId       string `gorm:"primarykey"`
 	ImportBatchId string
 	IsProcessed   bool
 	WidthPixels   uint64
@@ -70,24 +68,6 @@ type Image struct {
 	Software                 string    `exifTag:"Software"`
 	XResolution              float64   `exifTag:"XResolution"`
 	YResolution              float64   `exifTag:"YResolution"`
-}
-
-type ImportBatch struct {
-	Id   string
-	Date time.Time
-}
-
-type File struct {
-	gorm.Model
-
-	FileId        string // The uuid for the image
-	ImportBatchId string // The id of the batch where the file was uploaded
-	Filename      string // The filename with extension
-	StoragePath   string // The path to the file, withing the storage bucket
-	PublicURL     string // The public URL where the file is available
-	IsOriginal    bool   // True if this is an original file
-	Width         uint64 // Width in pixels of the image file
-	Height        uint64 // Height in pixels of the image file
 }
 
 func parseExifTimestamp(s string) (time.Time, error) {

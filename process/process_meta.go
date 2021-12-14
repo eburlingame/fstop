@@ -5,6 +5,7 @@ import (
 	"os"
 	"sync"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
 
@@ -47,7 +48,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	defer wg.Done()
 
 	extension := GetExtension(image.UploadFilePath)
-	tempPath := "temp/" + image.FileId + extension
+	tempPath := "temp/" + image.ImageId + extension
 
 	// Write to temporary file
 	bimg.Write(tempPath, file)
@@ -62,7 +63,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 
 	// Create the image db entry
 	imageRecord := Image{
-		FileId:        image.FileId,
+		ImageId:       image.ImageId,
 		IsProcessed:   false,
 		ImportBatchId: image.ImportBatchId,
 	}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sync"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
 
@@ -59,12 +60,12 @@ func getImageType(file []byte) string {
 }
 
 func getResizedStorageFilename(r *Resources, image *ImageImport, size OutputImageSize) string {
-	return image.FileId + size.Suffix + size.Extension
+	return image.ImageId + size.Suffix + size.Extension
 }
 
 func getOriginalStorageFilename(r *Resources, image *ImageImport) string {
 	extension := GetExtension(image.UploadFilePath)
-	return image.FileId + extension
+	return image.ImageId + extension
 }
 
 func getStoragePath(r *Resources, filename string) string {
@@ -116,7 +117,8 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 
 	// Insert a FileRecord
 	r.Db.AddFile(&File{
-		FileId:        image.FileId,
+		Id:            Uuid(),
+		ImageId:       image.ImageId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,
 		StoragePath:   storagePath,
@@ -148,7 +150,8 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 
 	// Insert a FileRecord
 	r.Db.AddFile(&File{
-		FileId:        image.FileId,
+		Id:            Uuid(),
+		ImageId:       image.ImageId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,
 		StoragePath:   storagePath,
