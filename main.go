@@ -33,9 +33,6 @@ func setupRouter() *gin.Engine {
 
 	r := gin.Default()
 
-	// Set a lower memory limit for multipart forms (default is 32 MiB)
-	r.MaxMultipartMemory = 128 << 20 // 128 MiB
-
 	store := cookie.NewStore([]byte("mysecret"))
 	r.Use(sessions.Sessions("mysession", store))
 
