@@ -48,6 +48,7 @@ func setupRouter() *gin.Engine {
 	}
 
 	r.GET("/", HomeGetHandler(resources))
+	r.GET("/image/:imageId", ensureLoggedIn(), ImageGetHandler(resources))
 
 	r.GET("/login", ensureNotLoggedIn(), LoginGetHandler(resources))
 	r.POST("/login", ensureNotLoggedIn(), LoginPostHandler(resources))

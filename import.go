@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -27,46 +28,49 @@ func AdminImportGet(r *Resources) gin.HandlerFunc {
 
 func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		values, _ := c.GetPostFormArray("names")
-		enabled, _ := c.GetPostFormArray("enabled")
+		names, _ := c.GetPostFormArray("names")
 
 		importBatchId := Uuid()
 
 		images := []ImageImport{}
 
-		for i, value := range values {
-			if enabled[i] == "on" {
-				images = append(images, ImageImport{
-					FileId:         Uuid(),
-					ImportBatchId:  importBatchId,
-					UploadFilePath: r.config.S3UploadFolder + "/" + value,
+		for _, value := range names {
+			images = append(images, ImageImport{
+				FileId:         Uuid(),
+				ImportBatchId:  importBatchId,
+				UploadFilePath: r.config.S3UploadFolder + "/" + value,
 
-					Sizes: []OutputImageSize{
-						{
-							LongEdge:    200,
-							Suffix:      "_thumb",
-							Format:      "jpeg",
-							Extension:   ".jpeg",
-							ContentType: "image/jpeg",
-						},
-						// {
-						// 	LongEdge: 600,
-						// 	Suffix:   "_small",
-						// 	Format:   "jpeg",
-						// },
-						// {
-						// 	LongEdge: 1080,
-						// 	Suffix:   "_medium",
-						// 	Format:   "jpeg",
-						// },
-						// {
-						// 	LongEdge: 1920,
-						// 	Suffix:   "_large",
-						// 	Format:   "jpeg",
-						// },
+				Sizes: []OutputImageSize{
+					{
+						LongEdge:    200,
+						Suffix:      "_thumb",
+						Format:      "png",
+						Extension:   ".png",
+						ContentType: "image/png",
 					},
-				})
-			}
+					{
+						LongEdge:    600,
+						Suffix:      "_small",
+						Format:      "png",
+						Extension:   ".png",
+						ContentType: "image/png",
+					},
+					{
+						LongEdge:    1080,
+						Suffix:      "_medium",
+						Format:      "png",
+						Extension:   ".png",
+						ContentType: "image/png",
+					},
+					{
+						LongEdge:    1920,
+						Suffix:      "_large",
+						Format:      "png",
+						Extension:   ".png",
+						ContentType: "image/png",
+					},
+				},
+			})
 		}
 
 		batch := ImportBatchRequest{
@@ -96,8 +100,11 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
+		fmt.Printf("Batchid: %s\n", params.BatchId)
+
 		var images []Image
 		r.db.GetImagesInImportBatch(&images, params.BatchId)
+		fmt.Println(images)
 
 		type Status struct {
 			IsProcessed bool
@@ -121,7 +128,7 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		c.HTML(http.StatusOK, "import_status_table.html", gin.H{
-			"polling":       !allProcessed,
+			"poll":          !allProcessed || len(statuses) == 0,
 			"statuses":      statuses,
 			"importBatchId": params.BatchId,
 		})

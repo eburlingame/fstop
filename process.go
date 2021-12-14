@@ -38,7 +38,7 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 
 	wg.Add(len(image.Sizes))
 	for _, size := range image.Sizes {
-		go ProcessImageResize(r, wg, &image, &size, fileContents)
+		go ProcessImageResize(r, wg, &image, size, fileContents)
 	}
 
 	wg.Wait()

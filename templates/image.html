@@ -1,0 +1,22 @@
+{{ template "header.html" . }}
+
+<style>
+  .image {
+    max-width: 100%;
+  }
+  .imageContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+
+<div class="imageContainer">
+  <img class="image" src="{{ .file.PublicURL }}" />
+</div>
+
+{{ template "footer.html" . }}

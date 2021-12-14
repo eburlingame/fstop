@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sync"
 
@@ -54,7 +55,7 @@ func getImageType(file []byte) string {
 	return bimg.DetermineImageTypeName(file)
 }
 
-func getResizedStorageFilename(r *Resources, image *ImageImport, size *OutputImageSize) string {
+func getResizedStorageFilename(r *Resources, image *ImageImport, size OutputImageSize) string {
 	return image.FileId + size.Suffix + size.Extension
 }
 
@@ -67,7 +68,7 @@ func getStoragePath(r *Resources, filename string) string {
 	return r.config.S3MediaFolder + "/" + filename
 }
 
-func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, size *OutputImageSize, file []byte) error {
+func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, size OutputImageSize, file []byte) error {
 	defer wg.Done()
 
 	outputImage := file
@@ -75,6 +76,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 	// Determine image dimensions
 	width, height, err := getImageSize(file)
 	if err != nil {
+		fmt.Printf("Something went wrong: %s\n", err)
 		return err
 	}
 
@@ -85,6 +87,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 		outputImage, err = resizeImage(outputImage, newWidth, newHeight)
 
 		if err != nil {
+			fmt.Printf("Something went wrong: %s\n", err)
 			return err
 		}
 
@@ -97,6 +100,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 		outputImage, err = convertImageFormat(outputImage, size.Format)
 
 		if err != nil {
+			fmt.Printf("Something went wrong: %s\n", err)
 			return err
 		}
 	}
@@ -146,7 +150,7 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 		Filename:      storageFilename,
 		StoragePath:   storagePath,
 		PublicURL:     r.config.S3BaseUrl + storagePath,
-		IsOriginal:    false,
+		IsOriginal:    true,
 		Width:         uint64(width),
 		Height:        uint64(height),
 	})

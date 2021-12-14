@@ -1,0 +1,27 @@
+<style>
+  .streamLink {
+    margin: 0px;
+    line-height: 0px;
+  }
+  .streamImage {
+    margin: 0px;
+    max-width: 400px;
+  }
+  .streamContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+
+<div class="streamContainer">
+  {{ range . }}
+  <a href="/image/{{ .FileId }}" class="streamLink">
+    <img class="streamImage" src="{{ .PublicURL }}" />
+  </a>
+  {{ end }}
+</div>

@@ -1,10 +1,13 @@
 package main
 
 import (
+	"log"
+	"os"
 	"time"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // Table structs
@@ -14,6 +17,8 @@ type Database interface {
 	GetImagesInImportBatch(images *[]Image, batchId string)
 	AddImage(image *Image) error
 	UpdateImageProcessedStatus(fileId string, isProcessed bool) error
+
+	ListLatestPhotos(photos *[]File, minWidth int, limit int, offset int) error
 
 	AddImportBatch() string
 
@@ -26,7 +31,19 @@ type SqliteDatabase struct {
 }
 
 func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+	newLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Info, // Log level
+			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+			Colorful:                  false,       // Disable color
+		},
+	)
+
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
+		Logger: newLogger,
+	})
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -69,8 +86,32 @@ func (d *SqliteDatabase) AddFile(file *File) error {
 	return nil
 }
 
+func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int, offset int) error {
+	d.db.Raw(`
+		SELECT *, 
+		
+		(SELECT MIN(width)
+			FROM files f 
+			WHERE f.width > ?
+			GROUP BY f.file_id
+			ORDER BY f.width ASC) AS smallest_file
+
+		FROM files
+		JOIN images i ON i.file_id = files.file_id 
+		WHERE files.width = smallest_file
+		ORDER BY date_time_original DESC
+		`, minWidth).
+		Find(files)
+
+	return nil
+}
+
 func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error {
-	d.db.Order("width asc").Where("file_id = ? AND width > ? AND is_original = ?", fileId, minWidth, false).First(file)
+	d.db.
+		Order("width asc").
+		Where("file_id = ? AND width > ? AND is_original = ?", fileId, minWidth, false).
+		First(file)
+
 	return nil
 }
 

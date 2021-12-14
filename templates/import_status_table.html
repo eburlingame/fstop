@@ -1,7 +1,7 @@
 <table
-  {{if .polling }}
+  {{if .poll }}
   hx-get="/admin/import/status/{{ .importBatchId }}"
-  hx-trigger="every 15s"
+  hx-trigger="every 2s"
   hx-swap="outerHTML"
   {{end}}
 >

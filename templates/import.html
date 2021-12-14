@@ -8,8 +8,7 @@
       {{ range $index, $fname := .files }}
       <tr>
         <td>
-          <input type="hidden" name="names" value="{{ $fname }}"></input>
-          <input type="checkbox" name="enabled"  checked>{{ $fname }}</input></td>
+          <input type="checkbox" name="names" value="{{ $fname }}" checked>{{ $fname }}</input></td>
       </tr>
       {{ end }}
     </tbody>

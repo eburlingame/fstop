@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/barasher/go-exiftool"
@@ -47,6 +48,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 
 	// Write to temporary file
 	bimg.Write(tempPath, file)
+	defer os.Remove(tempPath)
 
 	// Extract image EXIF data
 	tags, err := extractExif(tempPath)
