@@ -9,26 +9,78 @@ import (
 	. "github.com/eburlingame/fstop/process"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
+	"github.com/gosimple/slug"
 
 	"github.com/gin-gonic/gin"
 )
 
+func ImportSelectionPage(r *Resources, c *gin.Context, formError error) {
+	files, err := r.Storage.ListFiles(r.Config.S3UploadFolder)
+	if err != nil {
+		c.String(500, "Error listing files: %s\n", err)
+		return
+	}
+
+	var albums []Album
+	r.Db.ListAlbums(&albums)
+
+	for i := range files {
+		files[i] = strings.Replace(files[i], r.Config.S3UploadFolder+"/", "", 1)
+	}
+
+	c.HTML(http.StatusOK, "import.html", gin.H{
+		"files":     files,
+		"albums":    albums,
+		"hasAlbums": len(albums) > 0,
+		"hasError":  formError != nil,
+		"error":     fmt.Sprintf("Error: %s", formError),
+	})
+}
+
 func AdminImportGet(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		files, err := r.Storage.ListFiles(r.Config.S3UploadFolder)
-		if err != nil {
-			c.String(500, "Error listing files: %s\n", err)
-			return
-		}
-
-		for i := range files {
-			files[i] = strings.Replace(files[i], r.Config.S3UploadFolder+"/", "", 1)
-		}
-
-		c.HTML(http.StatusOK, "import.html", gin.H{
-			"files": files,
-		})
+		ImportSelectionPage(r, c, nil)
 	}
+}
+
+func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
+	addToAlbum, _ := c.GetPostForm("addToAlbum")
+	albumSelection, _ := c.GetPostForm("albumSelection")
+	newAlbumName, _ := c.GetPostForm("newAlbumName")
+	existingAlbumId, _ := c.GetPostForm("existingAlbumId")
+
+	var album Album
+	albumId := ""
+
+	if addToAlbum == "on" {
+		if albumSelection == "existing" {
+			r.Db.GetAlbum(&album, existingAlbumId)
+			if album.Id == "" {
+				return "", fmt.Errorf("Unexpected type %s", albumSelection)
+			}
+
+			albumId = album.Id
+		} else if albumSelection == "new" {
+			if strings.Trim(newAlbumName, " ") == "" {
+				fmt.Printf("Name cannot be empty")
+				return "", fmt.Errorf("Name cannot be empty")
+			}
+
+			albumId = Uuid()
+			r.Db.AddAlbum(Album{
+				Id:           albumId,
+				Name:         newAlbumName,
+				Slug:         slug.Make(newAlbumName),
+				Description:  "",
+				CoverImageId: "",
+				IsPublished:  false,
+			})
+		} else {
+			return "", fmt.Errorf("Unexpected type %s", albumSelection)
+		}
+	}
+
+	return albumId, nil
 }
 
 func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
@@ -37,12 +89,19 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 
 		importBatchId := Uuid()
 
+		albumId, err := getFormAlbumId(r, c)
+		if err != nil {
+			ImportSelectionPage(r, c, err)
+			return
+		}
+
 		images := []ImageImport{}
 
 		for _, value := range names {
 			images = append(images, ImageImport{
 				ImageId:        Uuid(),
 				ImportBatchId:  importBatchId,
+				AlbumId:        albumId,
 				UploadFilePath: r.Config.S3UploadFolder + "/" + value,
 
 				Sizes: []OutputImageSize{
@@ -83,6 +142,7 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 			Images:        images,
 		}
 
+		// _ = batch
 		go ImportImageBatch(r, batch)
 
 		c.HTML(200, "import_complete.html", gin.H{

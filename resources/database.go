@@ -24,6 +24,12 @@ type Database interface {
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
+
+	ListAlbums(album *[]Album) error
+	GetAlbum(album *Album, albumId string) error
+	GetAlbumByName(album *Album, albumName string) error
+	AddAlbum(album Album) error
+	AddImageToAlbum(albumId string, imageId string) error
 }
 
 type SqliteDatabase struct {
@@ -51,6 +57,8 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	// Migrate the schema
 	db.AutoMigrate(&Image{})
 	db.AutoMigrate(&File{})
+	db.AutoMigrate(&Album{})
+	db.AutoMigrate(&AlbumImage{})
 
 	base := &SqliteDatabase{
 		db: db,
@@ -116,4 +124,46 @@ func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error 
 
 func (d *SqliteDatabase) GetImagesInImportBatch(images *[]Image, batchId string) {
 	d.db.Where("import_batch_id = ?", batchId).Find(&images)
+}
+
+func (d *SqliteDatabase) AddAlbum(album Album) error {
+	d.db.Create(&album)
+
+	return nil
+}
+
+func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
+	d.db.Delete(&Album{}, albumId)
+	d.db.Where("album_id = ?", albumId).Delete(&AlbumImage{})
+
+	return nil
+}
+
+func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error {
+	d.db.Where("album_id = ?", albumId).Updates(updatedAlbum)
+
+	return nil
+}
+
+func (d *SqliteDatabase) GetAlbum(album *Album, albumId string) error {
+	d.db.Find(&album, "id = ?", albumId)
+	return nil
+}
+
+func (d *SqliteDatabase) GetAlbumByName(album *Album, albumName string) error {
+	d.db.Find(&album, "name = ?", albumName)
+	return nil
+}
+
+func (d *SqliteDatabase) ListAlbums(album *[]Album) error {
+	d.db.Find(&album)
+	return nil
+}
+
+func (d *SqliteDatabase) AddImageToAlbum(albumId string, imageId string) error {
+	d.db.Create(&AlbumImage{
+		AlbumId: albumId,
+		ImageId: imageId,
+	})
+	return nil
 }

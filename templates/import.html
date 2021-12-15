@@ -3,18 +3,83 @@
 <h2>{{ .header }}</h2>
 
 <form method="post" action="/admin/import">
-  <table>
-    <tbody>
-      {{ range $index, $fname := .files }}
-      <tr>
-        <td>
-          <input type="checkbox" name="names" value="{{ $fname }}" checked>{{ $fname }}</input></td>
-      </tr>
-      {{ end }}
-    </tbody>
-  </table>
+  <fieldset>
+    <table>
+      <tbody>
+        {{ range $index, $fname := .files }}
+        <tr>
+          <td>
+            <input type="checkbox" name="names" value="{{ $fname }}" checked>{{ $fname }}</input></td>
+        </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </fieldset>
 
+  <fieldset>
+    {{ if .hasError }}
+      <div>{{ .error }}</div>
+    {{ end }}
+
+    <input id="addToAlbumCheckbox" type="checkbox" name="addToAlbum"  onchange="onAddToAlbumCheckboxChange()">
+      Add Photos to Album
+    </input>
+
+    <br />
+
+    <input id="newAlbumRadio" type="radio" name="albumSelection" value="new" disabled="true">
+      New Album: 
+    </input>
+
+    <input id="newAlbumInput" type="text" name="newAlbumName" disabled="true" />
+
+    {{ if .hasAlbums }}
+      <br />
+
+      <input id="existingAlbumRadio" type="radio" name="albumSelection" value="existing" disabled="true">
+        Existing Album
+      </input>
+
+      <select id="existingAlbumNameSelect" name="existingAlbumId" disabled="true">
+        {{ range .albums }}
+        <option value="{{ .Id }}">
+          {{ .Name }}
+        </option>
+        {{ end }}
+      </select>
+    {{ end }}
+
+    <br />
+  </fieldset>
+
+  <br />
   <button type="submit">Import Photos</button>
 </form>
+
+<script>
+  
+  function onAddToAlbumCheckboxChange(e) {
+    const checked = document.getElementById("addToAlbumCheckbox").checked
+
+    if (checked) {
+      document.getElementById("newAlbumRadio").disabled = false;
+      document.getElementById("newAlbumInput").disabled = false;
+
+      if (document.getElementById("existingAlbumRadio")) {
+        document.getElementById("existingAlbumRadio").disabled = false;
+        document.getElementById("existingAlbumNameSelect").disabled = false;
+      }
+    } else {
+      document.getElementById("newAlbumRadio").disabled = true;
+      document.getElementById("newAlbumInput").disabled = true;
+
+      if (document.getElementById("existingAlbumRadio")) {
+        document.getElementById("existingAlbumRadio").disabled = true;
+        document.getElementById("existingAlbumNameSelect").disabled = true;
+      }
+    }
+  }
+
+</script>
 
 {{ template "footer.html" . }}

@@ -80,5 +80,10 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	// Write the image to the database
 	r.Db.AddImage(&imageRecord)
 
+	// Add the image to the correct album, if set
+	if image.AlbumId != "" {
+		r.Db.AddImageToAlbum(image.AlbumId, image.ImageId)
+	}
+
 	return nil
 }

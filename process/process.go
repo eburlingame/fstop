@@ -18,6 +18,7 @@ type ImageImport struct {
 	ImageId        string
 	ImportBatchId  string
 	UploadFilePath string
+	AlbumId        string
 	Sizes          []OutputImageSize
 }
 
