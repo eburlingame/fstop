@@ -2,6 +2,10 @@
   .streamLink {
     margin: 0px;
     line-height: 0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
   .streamImage {
     margin: 0px;
@@ -20,7 +24,7 @@
 
 <div class="streamContainer">
   {{ range . }}
-  <a href="/album/{{ .Id }}" class="streamLink">
+  <a href="/album/{{ .Slug }}" class="streamLink">
     <img class="streamImage" src="{{ .PublicURL }}" />
     <div>{{ .Name }}</div>
   </a>

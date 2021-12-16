@@ -27,16 +27,82 @@ type Database interface {
 	GetFile(file *File, fileId string, minWidth int) error
 
 	ListAlbums(album *[]Album) error
-	ListAlbumsCovers(albums *[]Alb, minWidth int, limit int, offset int) error
+	ListAlbumsCovers(albums *[]AlbumFile, minWidth int, limit int, offset int) error
+
 	GetAlbum(album *Album, albumId string) error
-	GetAlbumByName(album *Album, albumName string) error
+	GetAlbumBySlug(album *Album, albumSlug string) error
 	AddAlbum(album Album) error
 	AddImageToAlbum(albumId string, imageId string) error
+	ListAlbumImages(files *[]File, albumSlug string, minWidth int, limit int, offset int) error
 }
 
 type SqliteDatabase struct {
 	db *gorm.DB
 }
+
+const ImageFileView string = `
+	DROP VIEW IF EXISTS image_files;
+
+	CREATE VIEW image_files AS
+		SELECT 
+			*,
+			(SELECT MIN(f2.width) FROM files f2 WHERE f2.image_id = image_id) AS min_width,
+			(SELECT MAX(f2.width) FROM files f2 WHERE f2.image_id = image_id) AS max_width
+		FROM images
+		JOIN (
+			SELECT * 
+			FROM files f
+		) as files ON files.image_id  = images.image_id 
+		WHERE images.is_processed = TRUE
+		ORDER BY date_time_original DESC;
+`
+
+const AlbumsAndImagesView string = `
+	DROP VIEW IF EXISTS albums_and_images;
+
+	CREATE VIEW albums_and_images AS
+		SELECT *
+		FROM album_images ai
+		JOIN albums a ON ai.album_id  = a.id
+		JOIN images i ON i.image_id  = ai.image_id
+		WHERE a.is_published = 1;
+`
+
+const AlbumComputed string = `
+	DROP VIEW IF EXISTS album_computed;
+
+	CREATE VIEW album_computed AS
+		SELECT 
+			a.id,
+			a.slug, 
+			a.description,
+			a.name,
+			a.is_published,
+			(CASE WHEN a.cover_image_id <> "" 
+				THEN a.cover_image_id 
+				ELSE (SELECT aai.image_id 
+						FROM albums_and_images aai 
+						WHERE aai.album_id = a.id 
+						LIMIT 1)
+			END) AS cover_image_id,
+			(SELECT 
+				MAX(date_time_original) 
+				FROM album_images ai2
+				INNER JOIN images i2 
+				ON i2.image_id = ai2.image_id 
+				WHERE ai2.album_id = a.id) AS latest_date
+		FROM albums a;
+`
+
+const AlbumImageFiles string = `
+	DROP VIEW IF EXISTS album_image_files;
+
+	CREATE VIEW album_image_files AS
+		SELECT *
+		FROM image_files if2
+		LEFT JOIN albums_and_images aai ON aai.image_id = if2.image_id
+		WHERE aai.album_id IS NOT NULL
+`
 
 func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	newLogger := logger.New(
@@ -61,6 +127,11 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	db.AutoMigrate(&File{})
 	db.AutoMigrate(&Album{})
 	db.AutoMigrate(&AlbumImage{})
+
+	db.Exec(ImageFileView)
+	db.Exec(AlbumsAndImagesView)
+	db.Exec(AlbumComputed)
+	db.Exec(AlbumImageFiles)
 
 	base := &SqliteDatabase{
 		db: db,
@@ -115,7 +186,7 @@ func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int
 	return nil
 }
 
-type Alb struct {
+type AlbumFile struct {
 	Id           string `gorm:"column:id"`
 	Slug         string `gorm:"column:slug"`
 	Name         string `gorm:"column:name"`
@@ -124,7 +195,7 @@ type Alb struct {
 	PublicURL    string `gorm:"column:public_url"`
 }
 
-func (d *SqliteDatabase) ListAlbumsCovers(albums *[]Alb, minWidth int, limit int, offset int) error {
+func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, minWidth int, limit int, offset int) error {
 	d.db.Raw(`
 		SELECT 
 			id,
@@ -134,38 +205,19 @@ func (d *SqliteDatabase) ListAlbumsCovers(albums *[]Alb, minWidth int, limit int
 			latest_date,
 			cover_image_id,
 			public_url
-		FROM 
-			(SELECT 
-				a.id,
-				a.slug, 
-				a.description,
-				a.name,
-				(CASE WHEN a.cover_image_id <> "" 
-					THEN a.cover_image_id 
-					ELSE (SELECT i1.image_id 
-							FROM album_images ai 
-							INNER JOIN images i1 
-							ON i1.image_id = ai.image_id AND ai.album_id = a.id 
-							LIMIT 1)
-				END) AS cover_image_id,
-				(SELECT 
-					MAX(date_time_original) 
-					FROM album_images ai2
-					INNER JOIN images i2 
-					ON i2.image_id = ai2.image_id 
-					WHERE ai2.album_id = a.id) AS latest_date
-			FROM albums a) AS a
+		FROM album_computed a
 		INNER JOIN (SELECT i.image_id, public_url
 					FROM files f
 					JOIN images i ON i.image_id = f.image_id
 					WHERE width = (
 								SELECT MIN(width) 
-								FROM files f1
-								WHERE f1.image_id = f.image_id 
-								AND f1.width > @minWidth  OR (SELECT MAX(width) FROM files f2 WHERE f1.image_id = i.image_id) < @minWidth 
+								FROM image_files if1
+								WHERE if1.image_id = f.image_id 
+								AND if1.width > @minWidth OR if1.max_width < @minWidth 
 								)
-					) AS small_images 
+					) AS small_images
 		ON small_images.image_id = cover_image_id
+		WHERE a.is_published = 1
 		ORDER BY latest_date DESC
 		LIMIT @limit
 		OFFSET @offset
@@ -213,8 +265,8 @@ func (d *SqliteDatabase) GetAlbum(album *Album, albumId string) error {
 	return nil
 }
 
-func (d *SqliteDatabase) GetAlbumByName(album *Album, albumName string) error {
-	d.db.Find(&album, "name = ?", albumName)
+func (d *SqliteDatabase) GetAlbumBySlug(album *Album, albumSlug string) error {
+	d.db.Find(&album, "slug = ?", albumSlug)
 	return nil
 }
 
@@ -228,5 +280,18 @@ func (d *SqliteDatabase) AddImageToAlbum(albumId string, imageId string) error {
 		AlbumId: albumId,
 		ImageId: imageId,
 	})
+	return nil
+}
+
+func (d *SqliteDatabase) ListAlbumImages(files *[]File, albumSlug string, minWidth int, limit int, offset int) error {
+	d.db.Raw(`
+		SELECT * 
+		FROM album_image_files aif 
+		WHERE  
+			width = (SELECT MIN(width) FROM image_files if2 WHERE if2.image_id = aif.image_id AND if2.width > 400) AND
+			slug = ?
+		ORDER BY date_time_original DESC;
+	`, albumSlug).Find(files)
+
 	return nil
 }

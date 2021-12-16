@@ -12,7 +12,7 @@ import (
 
 func AlbumsListGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var files []Alb
+		var files []AlbumFile
 
 		r.Db.ListAlbumsCovers(&files, 400, 20, 0)
 
@@ -26,7 +26,7 @@ func AlbumsListGetHandler(r *Resources) gin.HandlerFunc {
 
 func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 	type UriParams struct {
-		ImageId string `uri:"albumId" binding:"required"`
+		AlbumSlug string `uri:"albumSlug" binding:"required"`
 	}
 
 	return func(c *gin.Context) {
@@ -38,11 +38,15 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
-		var file File
-		r.Db.GetFile(&file, params.ImageId, 1000)
+		var album Album
+		var files []File
 
-		c.HTML(http.StatusOK, "image.html", gin.H{
-			"file": file,
+		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
+		r.Db.ListAlbumImages(&files, params.AlbumSlug, 500, 50, 0)
+
+		c.HTML(http.StatusOK, "album.html", gin.H{
+			"album": album,
+			"files": files,
 		})
 	}
 }

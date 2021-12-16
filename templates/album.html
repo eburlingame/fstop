@@ -1,0 +1,8 @@
+{{ template "header.html" . }}
+
+<h1>{{ .album.Name }}</h1>
+<div>{{ .album.Description }}</div>
+
+{{ template "stream.html" .files }}
+
+{{ template "footer.html" . }}
