@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"database/sql"
 	"log"
 	"os"
 	"time"
@@ -26,6 +27,7 @@ type Database interface {
 	GetFile(file *File, fileId string, minWidth int) error
 
 	ListAlbums(album *[]Album) error
+	ListAlbumsCovers(albums *[]Alb, minWidth int, limit int, offset int) error
 	GetAlbum(album *Album, albumId string) error
 	GetAlbumByName(album *Album, albumName string) error
 	AddAlbum(album Album) error
@@ -95,20 +97,81 @@ func (d *SqliteDatabase) AddFile(file *File) error {
 
 func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int, offset int) error {
 	d.db.Raw(`
-		SELECT *, 
-		
-		(SELECT MIN(width)
-			FROM files f 
-			WHERE f.width > ?
-			GROUP BY f.image_id
-			ORDER BY f.width ASC) AS smallest_file
-
+		SELECT *
 		FROM files
-		JOIN images i ON i.image_id = files.image_id 
-		WHERE files.width = smallest_file
-		ORDER BY date_time_original DESC
-		`, minWidth).
+		JOIN images i ON i.image_id  = files.image_id
+		WHERE width = (SELECT MIN(width) 
+			FROM files f 
+			WHERE f.image_id = files.image_id 
+			AND f.width > ? OR 
+				(SELECT MAX(width) FROM files f1 WHERE f1.image_id = files.image_id) < ?
+			)
+		ORDER BY i.date_time_original DESC
+		LIMIT ?
+		OFFSET ?
+		`, minWidth, minWidth, limit, offset).
 		Find(files)
+
+	return nil
+}
+
+type Alb struct {
+	Id           string `gorm:"column:id"`
+	Slug         string `gorm:"column:slug"`
+	Name         string `gorm:"column:name"`
+	Description  string `gorm:"column:description"`
+	CoverImageId string `gorm:"column:cover_image_id"`
+	PublicURL    string `gorm:"column:public_url"`
+}
+
+func (d *SqliteDatabase) ListAlbumsCovers(albums *[]Alb, minWidth int, limit int, offset int) error {
+	d.db.Raw(`
+		SELECT 
+			id,
+			slug, 
+			name, 
+			description,
+			latest_date,
+			cover_image_id,
+			public_url
+		FROM 
+			(SELECT 
+				a.id,
+				a.slug, 
+				a.description,
+				a.name,
+				(CASE WHEN a.cover_image_id <> "" 
+					THEN a.cover_image_id 
+					ELSE (SELECT i1.image_id 
+							FROM album_images ai 
+							INNER JOIN images i1 
+							ON i1.image_id = ai.image_id AND ai.album_id = a.id 
+							LIMIT 1)
+				END) AS cover_image_id,
+				(SELECT 
+					MAX(date_time_original) 
+					FROM album_images ai2
+					INNER JOIN images i2 
+					ON i2.image_id = ai2.image_id 
+					WHERE ai2.album_id = a.id) AS latest_date
+			FROM albums a) AS a
+		INNER JOIN (SELECT i.image_id, public_url
+					FROM files f
+					JOIN images i ON i.image_id = f.image_id
+					WHERE width = (
+								SELECT MIN(width) 
+								FROM files f1
+								WHERE f1.image_id = f.image_id 
+								AND f1.width > @minWidth  OR (SELECT MAX(width) FROM files f2 WHERE f1.image_id = i.image_id) < @minWidth 
+								)
+					) AS small_images 
+		ON small_images.image_id = cover_image_id
+		ORDER BY latest_date DESC
+		LIMIT @limit
+		OFFSET @offset
+
+		`, sql.Named("minWidth", minWidth), sql.Named("limit", limit), sql.Named("offset", offset)).
+		Scan(&albums)
 
 	return nil
 }

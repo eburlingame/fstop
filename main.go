@@ -43,7 +43,10 @@ func setupRouter() *gin.Engine {
 	}
 
 	r.GET("/", HomeGetHandler(resources))
-	r.GET("/image/:imageId", EnsureLoggedIn(), ImageGetHandler(resources))
+	r.GET("/image/:imageId", ImageGetHandler(resources))
+
+	r.GET("/albums", AlbumsListGetHandler(resources))
+	r.GET("/album/:albumId", SingleAlbumGetHandler(resources))
 
 	r.GET("/login", EnsureNotLoggedIn(), LoginGetHandler(resources))
 	r.POST("/login", EnsureNotLoggedIn(), LoginPostHandler(resources))
