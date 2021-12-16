@@ -1,0 +1,11 @@
+{{ template "header.html" . }}
+
+<h2>Albums</h2>
+
+{{ range .albums }}
+<div>
+    <div>{{ .Name }} <a href="/admin/albums/edit/{{ .Slug }}">Edit</a></div>
+</div>
+{{ end }}
+
+{{ template "footer.html" . }}

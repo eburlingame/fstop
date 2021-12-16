@@ -1,0 +1,36 @@
+{{ template "header.html" . }}
+
+<h2>Edit Album {{ .album.Name }}</h2>
+
+<form>
+  <label for="name">Album Name</label>
+  <input type="text" name="name" value="{{ .album.Name }}" />
+
+  <br />
+
+  <label for="description">Album Description</label>
+  <input type="text" name="description" value="{{ .album.Description }}" />
+
+  <button type="submit">Save</button>
+</form>
+
+<style>
+  .previewImage {
+    max-width: 300px;
+    max-height: 300px;
+  }
+</style>
+
+{{ range .files }}
+<div>
+  <a href="/image/{{ .ImageId }}">
+    <img class="previewImage" src="{{ .PublicURL }}" />
+  </a>
+
+  <br />
+  <button>Remove from album</button>
+</div>
+
+{{ end }} 
+
+{{ template "footer.html" . }}
