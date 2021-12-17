@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/models"
@@ -14,9 +13,7 @@ func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		var albumCovers []AlbumFile
-		r.Db.ListAlbumsCovers(&albumCovers, 400, 1000, 0)
-
-		fmt.Printf("%#v", albumCovers)
+		r.Db.ListAlbumsCovers(&albumCovers, false, 400, 1000, 0)
 
 		c.HTML(http.StatusOK, "admin_albums.html", gin.H{
 			"albums": albumCovers,
@@ -24,12 +21,12 @@ func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 	}
 }
 
-type EditPageUriParams struct {
+type AlbumUriParams struct {
 	AlbumSlug string `uri:"albumSlug" binding:"required"`
 }
 
 func EditAlbumPage(r *Resources, c *gin.Context) {
-	var params EditPageUriParams
+	var params AlbumUriParams
 
 	err := c.BindUri(&params)
 	if err != nil {
@@ -55,9 +52,54 @@ func AdminEditAlbumGetHandler(r *Resources) gin.HandlerFunc {
 	}
 }
 
+func AdminAddPhotosGetHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params AlbumUriParams
+
+		err := c.BindUri(&params)
+		if err != nil {
+			c.Status(404)
+			return
+		}
+
+		var album Album
+		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
+
+		var files []File
+		r.Db.ListLatestPhotos(&files, 200, 100, 0)
+
+		c.HTML(200, "add_to_album.html", gin.H{
+			"files": files,
+		})
+	}
+}
+
+func AdminAddPhotosPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var params AlbumUriParams
+
+		err := c.BindUri(&params)
+		if err != nil {
+			c.Status(404)
+			return
+		}
+
+		var album Album
+		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
+
+		imageIds := c.PostFormArray("images")
+
+		for _, imageId := range imageIds {
+			r.Db.AddImageToAlbum(album.Id, imageId)
+		}
+
+		c.Redirect(http.StatusFound, "/admin/albums/"+album.Slug)
+	}
+}
+
 func AdminEditAlbumPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var params EditPageUriParams
+		var params AlbumUriParams
 
 		err := c.BindUri(&params)
 		if err != nil {
@@ -69,6 +111,7 @@ func AdminEditAlbumPostHandler(r *Resources) gin.HandlerFunc {
 			Name        string `form:"name"`
 			Slug        string `form:"slug"`
 			Description string `form:"description"`
+			IsPublished string `form:"is_published"`
 		}
 
 		var form FormData
@@ -82,6 +125,7 @@ func AdminEditAlbumPostHandler(r *Resources) gin.HandlerFunc {
 		album.Name = form.Name
 		album.Slug = form.Slug
 		album.Description = form.Description
+		album.IsPublished = form.IsPublished == "on"
 
 		r.Db.UpdateAlbum(album.Id, &album)
 

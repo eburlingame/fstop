@@ -27,7 +27,7 @@ type Database interface {
 	GetFile(file *File, fileId string, minWidth int) error
 
 	ListAlbums(album *[]Album) error
-	ListAlbumsCovers(albums *[]AlbumFile, minWidth int, limit int, offset int) error
+	ListAlbumsCovers(albums *[]AlbumFile, publishedOnly bool, minWidth int, limit int, offset int) error
 
 	GetAlbum(album *Album, albumId string) error
 	GetAlbumBySlug(album *Album, albumSlug string) error
@@ -66,8 +66,7 @@ const AlbumsAndImagesView string = `
 		SELECT *
 		FROM album_images ai
 		JOIN albums a ON ai.album_id  = a.id
-		JOIN images i ON i.image_id  = ai.image_id
-		WHERE a.is_published = 1;
+		JOIN images i ON i.image_id  = ai.image_id;
 `
 
 const AlbumComputed string = `
@@ -197,7 +196,12 @@ type AlbumFile struct {
 	PublicURL    string `gorm:"column:public_url"`
 }
 
-func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, minWidth int, limit int, offset int) error {
+func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, publishedOnly bool, minWidth int, limit int, offset int) error {
+	published := 0
+	if publishedOnly {
+		published = 1
+	}
+
 	d.db.Raw(`
 		SELECT 
 			id,
@@ -219,12 +223,16 @@ func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, minWidth int, lim
 								)
 					) AS small_images
 		ON small_images.image_id = cover_image_id
-		WHERE a.is_published = 1
+		WHERE a.is_published >= @published
 		ORDER BY latest_date DESC
 		LIMIT @limit
 		OFFSET @offset
 
-		`, sql.Named("minWidth", minWidth), sql.Named("limit", limit), sql.Named("offset", offset)).
+		`,
+		sql.Named("minWidth", minWidth),
+		sql.Named("limit", limit),
+		sql.Named("offset", offset),
+		sql.Named("published", published)).
 		Scan(&albums)
 
 	return nil
@@ -257,7 +265,15 @@ func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
 }
 
 func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error {
-	d.db.Where("id = ?", albumId).Updates(updatedAlbum)
+	d.db.Model(&Album{}).
+		Where("id = ?", albumId).
+		Updates(map[string]interface{}{
+			"slug":           updatedAlbum.Slug,
+			"name":           updatedAlbum.Name,
+			"description":    updatedAlbum.Description,
+			"cover_image_id": updatedAlbum.CoverImageId,
+			"is_published":   updatedAlbum.IsPublished,
+		})
 
 	return nil
 }

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/models"
@@ -14,9 +13,7 @@ func AlbumsListGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var files []AlbumFile
 
-		r.Db.ListAlbumsCovers(&files, 400, 20, 0)
-
-		fmt.Printf("PublicURL: %#v", files)
+		r.Db.ListAlbumsCovers(&files, true, 400, 20, 0)
 
 		c.HTML(http.StatusOK, "albums.html", gin.H{
 			"files": files,

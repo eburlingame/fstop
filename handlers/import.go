@@ -165,8 +165,6 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
-		fmt.Printf("Batchid: %s\n", params.BatchId)
-
 		var images []Image
 		r.Db.GetImagesInImportBatch(&images, params.BatchId)
 		fmt.Println(images)

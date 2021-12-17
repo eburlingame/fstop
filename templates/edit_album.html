@@ -16,6 +16,12 @@
   <label for="description">Album Description</label>
   <input type="text" name="description" value="{{ .album.Description }}" />
 
+  <br />
+
+  <label for="description">Publish Album?</label>
+  <input type="checkbox" name="is_published" {{if .album.IsPublished }}checked{{end}} />
+
+  <br />
   <button type="submit">Update</button>
 </form>
 
@@ -41,5 +47,9 @@
   </button>
 </div>
 {{ end }}
+
+<a href="/admin/albums/{{ $.album.Slug }}/add">
+  Add to Album
+</a>
 
 {{ template "footer.html" . }}
