@@ -32,7 +32,9 @@ type Database interface {
 	GetAlbum(album *Album, albumId string) error
 	GetAlbumBySlug(album *Album, albumSlug string) error
 	AddAlbum(album Album) error
+	UpdateAlbum(albumId string, updatedAlbum *Album) error
 	AddImageToAlbum(albumId string, imageId string) error
+	RemoveImageFromAlbum(albumId string, imageId string) error
 	ListAlbumImages(files *[]File, albumSlug string, minWidth int, limit int, offset int) error
 }
 
@@ -255,7 +257,7 @@ func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
 }
 
 func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error {
-	d.db.Where("album_id = ?", albumId).Updates(updatedAlbum)
+	d.db.Where("id = ?", albumId).Updates(updatedAlbum)
 
 	return nil
 }
@@ -280,6 +282,11 @@ func (d *SqliteDatabase) AddImageToAlbum(albumId string, imageId string) error {
 		AlbumId: albumId,
 		ImageId: imageId,
 	})
+	return nil
+}
+
+func (d *SqliteDatabase) RemoveImageFromAlbum(albumId string, imageId string) error {
+	d.db.Where("album_id = ? AND image_id = ?", albumId, imageId).Delete(&AlbumImage{})
 	return nil
 }
 

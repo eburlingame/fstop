@@ -2,16 +2,21 @@
 
 <h2>Edit Album {{ .album.Name }}</h2>
 
-<form>
+<form action="/admin/albums/{{ .album.Slug }}" method="post">
   <label for="name">Album Name</label>
   <input type="text" name="name" value="{{ .album.Name }}" />
+
+  <br />
+
+  <label for="name">URL Slug</label>
+  <input type="text" name="slug" value="{{ .album.Slug }}" />
 
   <br />
 
   <label for="description">Album Description</label>
   <input type="text" name="description" value="{{ .album.Description }}" />
 
-  <button type="submit">Save</button>
+  <button type="submit">Update</button>
 </form>
 
 <style>
@@ -22,15 +27,19 @@
 </style>
 
 {{ range .files }}
-<div>
+<div id="file-{{ .ImageId }}">
   <a href="/image/{{ .ImageId }}">
     <img class="previewImage" src="{{ .PublicURL }}" />
   </a>
 
   <br />
-  <button>Remove from album</button>
+  <button
+    hx-delete="/admin/albums/{{ $.album.Slug }}/{{ .ImageId }}"
+    hx-target="#file-{{ .ImageId }}"
+  >
+    Remove from album
+  </button>
 </div>
-
-{{ end }} 
+{{ end }}
 
 {{ template "footer.html" . }}

@@ -54,7 +54,9 @@ func setupRouter() *gin.Engine {
 	r.GET("/admin", EnsureLoggedIn(), AdminGetHandler(resources))
 
 	r.GET("/admin/albums", EnsureLoggedIn(), AdminAlbumsGetHandler(resources))
-	r.GET("/admin/albums/edit/:albumSlug", EnsureLoggedIn(), AdminEditAlbumGetHandler(resources))
+	r.GET("/admin/albums/:albumSlug", EnsureLoggedIn(), AdminEditAlbumGetHandler(resources))
+	r.POST("/admin/albums/:albumSlug", EnsureLoggedIn(), AdminEditAlbumPostHandler(resources))
+	r.DELETE("/admin/albums/:albumSlug/:imageId", EnsureLoggedIn(), AdminRemoveImageFromAlbumPostHandler(resources))
 
 	r.GET("/admin/upload", EnsureLoggedIn(), AdminUploadGet(resources))
 	r.POST("/admin/upload/sign", EnsureLoggedIn(), AdminUploadSignedUrlPostHandler(resources))
