@@ -19,7 +19,13 @@
   <br />
 
   <label for="description">Publish Album?</label>
-  <input type="checkbox" name="is_published" {{if .album.IsPublished }}checked{{end}} />
+  <input
+    type="checkbox"
+    name="is_published"
+    {{if
+    .album.IsPublished
+    }}checked{{end}}
+  />
 
   <br />
   <button type="submit">Update</button>
@@ -48,8 +54,10 @@
 </div>
 {{ end }}
 
-<a href="/admin/albums/{{ $.album.Slug }}/add">
-  Add to Album
-</a>
+<a href="/admin/albums/{{ $.album.Slug }}/add"> Add to Album </a>
+
+<form method="post" action="/admin/albums/{{ .album.Slug }}/delete">
+  <button type="submit">Delete Album</button>
+</form>
 
 {{ template "footer.html" . }}

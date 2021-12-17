@@ -5,6 +5,7 @@ import (
 
 	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
+	. "github.com/eburlingame/fstop/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -18,6 +19,22 @@ func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 		c.HTML(http.StatusOK, "admin_albums.html", gin.H{
 			"albums": albumCovers,
 		})
+	}
+}
+
+func AdminAddAlbumPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		album := Album{
+			Id:          Uuid(),
+			Slug:        "untitled",
+			Name:        "Untitled",
+			Description: "",
+			IsPublished: false,
+		}
+
+		r.Db.AddAlbum(album)
+
+		c.Redirect(http.StatusFound, "/admin/albums/"+album.Slug)
 	}
 }
 
@@ -152,5 +169,22 @@ func AdminRemoveImageFromAlbumPostHandler(r *Resources) gin.HandlerFunc {
 		r.Db.RemoveImageFromAlbum(album.Id, params.ImageId)
 
 		c.HTML(200, "image_removed.html", gin.H{})
+	}
+}
+
+func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		type DeleteAlbumUriParams struct {
+			AlbumSlug string `uri:"albumSlug" binding:"required"`
+		}
+
+		var params DeleteAlbumUriParams
+		c.BindUri(&params)
+
+		var album Album
+		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
+		r.Db.DeleteAlbum(album.Id)
+
+		c.Redirect(http.StatusFound, "/admin/albums")
 	}
 }

@@ -32,6 +32,7 @@ type Database interface {
 	GetAlbum(album *Album, albumId string) error
 	GetAlbumBySlug(album *Album, albumSlug string) error
 	AddAlbum(album Album) error
+	DeleteAlbum(albumId string) error
 	UpdateAlbum(albumId string, updatedAlbum *Album) error
 	AddImageToAlbum(albumId string, imageId string) error
 	RemoveImageFromAlbum(albumId string, imageId string) error
