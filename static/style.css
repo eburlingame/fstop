@@ -1,0 +1,57 @@
+html {
+  overflow-y: scroll;
+}
+
+body {
+  background-color: rgb(34, 34, 34);
+  color: #eee;
+  font-family: "Open Sans", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: #ddd;
+  transition: color 0.3s ease-in-out;
+
+  text-decoration: none;
+}
+
+a:hover {
+  color: #bbb;
+  transition: color 0.3s ease-in-out;
+}
+
+.container {
+  max-width: 1200px;
+  margin-top: 24px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.headerMenu {
+  margin-bottom: 2em;
+  font-size: 20px;
+}
+
+.headerMenu > a {
+  margin-right: 24px;
+  font-weight: 600;
+}
+
+.footer {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer > a {
+  color: #444;
+}
+
+.footer > a:hover {
+  color: #666;
+}

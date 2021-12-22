@@ -1,8 +1,14 @@
 {{ template "header.html" . }}
 
-<h1>{{ .album.Name }}</h1>
-<div>{{ .album.Description }}</div>
+<style>
+  .albumDescription {
+    margin-bottom: 2em;
+  }
+</style>
 
-{{ template "stream.html" .files }}
+<h1>{{ .album.Name }}</h1>
+<div class="albumDescription">{{ .album.Description }}</div>
+
+{{ template "stream.html" .files }} 
 
 {{ template "footer.html" . }}

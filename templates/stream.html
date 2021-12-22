@@ -1,27 +1,56 @@
 <style>
-  .streamLink {
-    margin: 0px;
-    line-height: 0px;
+  .grid {
+    width: 100%;
   }
-  .streamImage {
-    margin: 0px;
-    max-width: 400px;
-  }
-  .streamContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
 
-    margin-left: auto;
-    margin-right: auto;
+  /* clear fix */
+  .grid:after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+
+  /* ---- .grid-item ---- */
+
+  .grid-sizer,
+  .grid-item {
+    width: calc(33.333% - 5px);
+  }
+
+  .grid-item {
+    float: left;
+    margin-bottom: 5px;
+  }
+
+  .grid-item img {
+    display: block;
+    max-width: 100%;
   }
 </style>
 
-<div class="streamContainer">
+<div class="grid">
+  <div class="grid-sizer"></div>
+
   {{ range . }}
-  <a href="/image/{{ .ImageId }}" class="streamLink">
-    <img class="streamImage" src="{{ .PublicURL }}" />
-  </a>
+  <div class="grid-item">
+    <a href="/image/{{ .ImageId }}" class="streamLink">
+      <img src="{{ .PublicURL }}" />
+    </a>
+  </div>
   {{ end }}
 </div>
+
+<script>
+  var grid = document.querySelector(".grid");
+
+  var msnry = new Masonry(grid, {
+    itemSelector: ".grid-item",
+    columnWidth: ".grid-sizer",
+    percentPosition: true,
+    gutter: 5,
+  });
+
+  imagesLoaded(grid).on("progress", function () {
+    msnry.layout();
+  });
+</script>
