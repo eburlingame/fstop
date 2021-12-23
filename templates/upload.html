@@ -1,6 +1,14 @@
-{{ template "header.html" . }}
+{{ template "header.html" "Upload Photos" }}
 
-<div id="drag-drop-area"></div>
+<div class="flex centered flex-column">
+  <div id="drag-drop-area" style="width: 500px; height: 450px"></div>
+
+  <div style="margin-top: 2em" class="centered">
+    <a id="nextLink" href="/admin/import" class="button hidden"
+      >Import photos</a
+    >
+  </div>
+</div>
 
 <script src="https://releases.transloadit.com/uppy/v2.3.1/uppy.min.js"></script>
 <script>
@@ -8,6 +16,8 @@
     .use(Uppy.Dashboard, {
       inline: true,
       target: "#drag-drop-area",
+      width: 500,
+      height: 450,
     })
     .use(Uppy.AwsS3, {
       getUploadParameters(file) {
@@ -44,7 +54,7 @@
     });
 
   uppy.on("complete", (result) => {
-    document.getElementById("nextLink").setAttribute("class", "");
+    document.getElementById("nextLink").setAttribute("class", "button");
 
     console.log(
       "Upload complete! We’ve uploaded these files:",
@@ -52,13 +62,5 @@
     );
   });
 </script>
-
-<style>
-  .hidden {
-    display: none;
-  }
-</style>
-
-<a id="nextLink" href="/admin/import" class="hidden">Import photos</a>
 
 {{ template "footer.html" . }}

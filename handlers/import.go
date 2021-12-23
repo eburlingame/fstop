@@ -142,7 +142,6 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 			Images:        images,
 		}
 
-		// _ = batch
 		go ImportImageBatch(r, batch)
 
 		c.HTML(200, "import_complete.html", gin.H{

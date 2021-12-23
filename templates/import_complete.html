@@ -1,11 +1,9 @@
-{{ template "header.html" . }}
+{{ template "header.html" "Import in progress..." }}
 
-<h2>{{ .header }}</h2>
-
-<table
+<div
+  id="progressTable"
   hx-get="/admin/import/status/{{ .importBatchId }}"
   hx-trigger="load"
-  hx-swap="outerHTML"
-/>
+></div>
 
 {{ template "footer.html" . }}

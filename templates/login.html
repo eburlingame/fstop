@@ -1,9 +1,9 @@
-{{ template "header.html" . }}
+{{ template "header.html" "Login" }}
 
 {{ if .error }}
-<div>
-  {{ .error }}
-</div> 
+  <div class="error">
+    {{ .error }}
+  </div> 
 {{ end }}
 
 <form action="/login" method="post">

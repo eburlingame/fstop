@@ -14,14 +14,13 @@ body {
 
 a {
   color: #ddd;
-  transition: color 0.3s ease-in-out;
-
+  transition: color 0.1s ease-in-out;
   text-decoration: none;
 }
 
 a:hover {
   color: #bbb;
-  transition: color 0.3s ease-in-out;
+  transition: color 0.1s ease-in-out;
 }
 
 .container {
@@ -54,4 +53,83 @@ a:hover {
 
 .footer > a:hover {
   color: #666;
+}
+
+.button {
+  font-size: 16px;
+  color: #fff;
+
+  padding: 10px 15px;
+  border-radius: 5px;
+  background-color: #666;
+  transition: background-color 0.1s ease-in-out;
+}
+
+.button:hover {
+  color: #fff;
+  background-color: #777;
+  transition: background-color 0.1s ease-in-out;
+}
+
+button.button {
+  font-size: 16px;
+  padding: 12px 17px;
+  cursor: pointer;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.flex {
+  display: flex;
+  align-items: stretch;
+}
+
+.centered {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.invisibleForm {
+  display: inline-block;
+}
+
+.hidden {
+  display: none;
+}
+
+#drag-drop-area {
+  height: 300px;
+}
+
+.error {
+  color: rgb(213, 51, 51);
+}
+
+.neighbored-right {
+  margin-right: 0.5em;
+}
+
+.neighbored-bottom {
+  margin-bottom: 0.5em;
+}
+
+.indented {
+  margin-left: 1em;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.frame {
+  border: 1px solid rgb(133, 133, 133);
+  border-radius: 5px;
+  padding: 0.75em;
 }

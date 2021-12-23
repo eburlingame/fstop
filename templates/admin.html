@@ -1,17 +1,17 @@
-{{ template "header.html" . }}
+{{ template "header.html" "Admin Dashboard" }}
 
 <h1>Admin Dashboard</h1>
 
-<div>
-  <a href="/admin/upload">Upload Images</a>
-  <a href="/admin/import">Import Uploaded Images</a>
+<div class="flex">
+  <a class="button neighbored-right" href="/admin/upload">Upload Images</a>
+  <a class="button neighbored-right" href="/admin/import">Import Uploaded Images</a>
 </div>
 
-<div>
-  <a href="/admin/albums">Albums</a>
+<div class="flex" style="margin-top: 20px">
+  <a class="button neighbored-right" href="/admin/albums">Albums</a>
 
-  <form method="post" action="/admin/albums">
-    <button type="submit">Add new album</button>
+  <form class="invisibleForm neighbored-right" method="post" action="/admin/albums">
+    <button class="button" type="submit">Add new album</button>
   </form>
 </div>
 

@@ -1,59 +1,67 @@
-{{ template "header.html" . }}
+{{ template "header.html" "Import Photos" }}
 
 <h2>{{ .header }}</h2>
 
-<form method="post" action="/admin/import">
-  <fieldset>
-    <table>
-      <tbody>
-        {{ range $index, $fname := .files }}
-        <tr>
-          <td>
-            <input type="checkbox" name="names" value="{{ $fname }}" checked>{{ $fname }}</input></td>
-        </tr>
-        {{ end }}
-      </tbody>
-    </table>
-  </fieldset>
+<style>
+  .checkboxGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+</style>
 
-  <fieldset>
+<form method="post" action="/admin/import">
+  <div class="frame neighbored-bottom">
+    <div class="font-bold neighbored-bottom">Select photos to upload:</div>
+
+    <div class="checkboxGrid">
+
+      {{ range $index, $fname := .files }}
+      <div>
+        <input type="checkbox" name="names" value="{{ $fname }}" checked>{{ $fname }}</input>
+      </div>
+      {{ end }}
+    </div>
+  </div>
+
+  <div class="frame neighbored-bottom">
     {{ if .hasError }}
-      <div>{{ .error }}</div>
+      <div class="error">{{ .error }}</div>
     {{ end }}
 
     <input id="addToAlbumCheckbox" type="checkbox" name="addToAlbum"  onchange="onAddToAlbumCheckboxChange()">
-      Add Photos to Album
+      Add photos to album
     </input>
 
-    <br />
-
-    <input id="newAlbumRadio" type="radio" name="albumSelection" value="new" disabled="true">
-      New Album: 
-    </input>
-
-    <input id="newAlbumInput" type="text" name="newAlbumName" disabled="true" />
-
-    {{ if .hasAlbums }}
-      <br />
-
-      <input id="existingAlbumRadio" type="radio" name="albumSelection" value="existing" disabled="true">
-        Existing Album
+    <div class="indented">
+      <input id="newAlbumRadio" type="radio" name="albumSelection" value="new" disabled="true">
+        New Album: 
       </input>
 
-      <select id="existingAlbumNameSelect" name="existingAlbumId" disabled="true">
-        {{ range .albums }}
-        <option value="{{ .Id }}">
-          {{ .Name }}
-        </option>
-        {{ end }}
-      </select>
+      <input id="newAlbumInput" type="text" name="newAlbumName" disabled="true" />
+    </div>
+
+    {{ if .hasAlbums }}
+
+      <div class="indented">
+        <input id="existingAlbumRadio" type="radio" name="albumSelection" value="existing" disabled="true">
+          Existing Album
+        </input>
+
+        <select id="existingAlbumNameSelect" name="existingAlbumId" disabled="true">
+          {{ range .albums }}
+          <option value="{{ .Id }}">
+            {{ .Name }}
+          </option>
+          {{ end }}
+        </select>
+      </div>
+
     {{ end }}
+    </div>
 
-    <br />
-  </fieldset>
-
-  <br />
-  <button type="submit">Import Photos</button>
+  <div class="centered">
+    <button type="submit" class="button">Import Photos</button>
+  </div>
 </form>
 
 <script>
