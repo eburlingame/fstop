@@ -66,7 +66,7 @@ const AlbumsAndImagesView string = `
 	CREATE VIEW albums_and_images AS
 		SELECT *
 		FROM album_images ai
-		JOIN albums a ON ai.album_id  = a.id
+		JOIN albums a ON ai.album_id  = a.album_id
 		JOIN images i ON i.image_id  = ai.image_id;
 `
 
@@ -75,7 +75,7 @@ const AlbumComputed string = `
 
 	CREATE VIEW album_computed AS
 		SELECT 
-			a.id,
+			a.album_id,
 			a.slug, 
 			a.description,
 			a.name,
@@ -84,7 +84,7 @@ const AlbumComputed string = `
 				THEN a.cover_image_id 
 				ELSE (SELECT aai.image_id 
 						FROM albums_and_images aai 
-						WHERE aai.album_id = a.id 
+						WHERE aai.album_id = a.album_id 
 						LIMIT 1)
 			END) AS cover_image_id,
 			(SELECT 
@@ -92,7 +92,7 @@ const AlbumComputed string = `
 				FROM album_images ai2
 				INNER JOIN images i2 
 				ON i2.image_id = ai2.image_id 
-				WHERE ai2.album_id = a.id) AS latest_date
+				WHERE ai2.album_id = a.album_id) AS latest_date
 		FROM albums a;
 `
 
@@ -189,12 +189,12 @@ func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int
 }
 
 type AlbumFile struct {
-	Id           string `gorm:"column:id"`
-	Slug         string `gorm:"column:slug"`
-	Name         string `gorm:"column:name"`
-	Description  string `gorm:"column:description"`
-	CoverImageId string `gorm:"column:cover_image_id"`
-	PublicURL    string `gorm:"column:public_url"`
+	AlbumId      string
+	Slug         string
+	Name         string
+	Description  string
+	CoverImageId string
+	PublicURL    string
 }
 
 func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, publishedOnly bool, minWidth int, limit int, offset int) error {
@@ -205,7 +205,7 @@ func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, publishedOnly boo
 
 	d.db.Raw(`
 		SELECT 
-			id,
+			album_id,
 			slug, 
 			name, 
 			description,
@@ -267,7 +267,7 @@ func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
 
 func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error {
 	d.db.Model(&Album{}).
-		Where("id = ?", albumId).
+		Where("album_id = ?", albumId).
 		Updates(map[string]interface{}{
 			"slug":           updatedAlbum.Slug,
 			"name":           updatedAlbum.Name,
@@ -280,7 +280,7 @@ func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error 
 }
 
 func (d *SqliteDatabase) GetAlbum(album *Album, albumId string) error {
-	d.db.Find(&album, "id = ?", albumId)
+	d.db.Find(&album, "album_id = ?", albumId)
 	return nil
 }
 

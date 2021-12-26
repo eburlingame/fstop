@@ -117,7 +117,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 
 	// Insert a FileRecord
 	r.Db.AddFile(&File{
-		Id:            Uuid(),
+		FileId:        Uuid(),
 		ImageId:       image.ImageId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,
@@ -150,7 +150,7 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 
 	// Insert a FileRecord
 	r.Db.AddFile(&File{
-		Id:            Uuid(),
+		FileId:        Uuid(),
 		ImageId:       image.ImageId,
 		ImportBatchId: image.ImportBatchId,
 		Filename:      storageFilename,

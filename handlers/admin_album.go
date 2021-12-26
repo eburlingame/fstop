@@ -25,7 +25,7 @@ func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 func AdminAddAlbumPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		album := Album{
-			Id:          Uuid(),
+			AlbumId:     Uuid(),
 			Slug:        "untitled",
 			Name:        "Untitled",
 			Description: "",
@@ -107,7 +107,7 @@ func AdminAddPhotosPostHandler(r *Resources) gin.HandlerFunc {
 		imageIds := c.PostFormArray("images")
 
 		for _, imageId := range imageIds {
-			r.Db.AddImageToAlbum(album.Id, imageId)
+			r.Db.AddImageToAlbum(album.AlbumId, imageId)
 		}
 
 		c.Redirect(http.StatusFound, "/admin/albums/"+album.Slug)
@@ -144,7 +144,7 @@ func AdminEditAlbumPostHandler(r *Resources) gin.HandlerFunc {
 		album.Description = form.Description
 		album.IsPublished = form.IsPublished == "on"
 
-		r.Db.UpdateAlbum(album.Id, &album)
+		r.Db.UpdateAlbum(album.AlbumId, &album)
 
 		if slugChanged {
 			c.Redirect(http.StatusFound, "/admin/albums/"+album.Slug)
@@ -166,7 +166,7 @@ func AdminRemoveImageFromAlbumPostHandler(r *Resources) gin.HandlerFunc {
 
 		var album Album
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
-		r.Db.RemoveImageFromAlbum(album.Id, params.ImageId)
+		r.Db.RemoveImageFromAlbum(album.AlbumId, params.ImageId)
 
 		c.HTML(200, "image_removed.html", gin.H{})
 	}
@@ -183,7 +183,7 @@ func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
 
 		var album Album
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
-		r.Db.DeleteAlbum(album.Id)
+		r.Db.DeleteAlbum(album.AlbumId)
 
 		c.Redirect(http.StatusFound, "/admin/albums")
 	}

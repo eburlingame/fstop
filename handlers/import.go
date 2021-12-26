@@ -55,11 +55,11 @@ func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
 	if addToAlbum == "on" {
 		if albumSelection == "existing" {
 			r.Db.GetAlbum(&album, existingAlbumId)
-			if album.Id == "" {
+			if album.AlbumId == "" {
 				return "", fmt.Errorf("Unexpected type %s", albumSelection)
 			}
 
-			albumId = album.Id
+			albumId = album.AlbumId
 		} else if albumSelection == "new" {
 			if strings.Trim(newAlbumName, " ") == "" {
 				fmt.Printf("Name cannot be empty")
@@ -68,7 +68,7 @@ func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
 
 			albumId = Uuid()
 			r.Db.AddAlbum(Album{
-				Id:           albumId,
+				AlbumId:      albumId,
 				Name:         newAlbumName,
 				Slug:         slug.Make(newAlbumName),
 				Description:  "",

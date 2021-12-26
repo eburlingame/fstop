@@ -1,7 +1,7 @@
 package models
 
 type Album struct {
-	Id           string `gorm:"primarykey"`
+	AlbumId      string `gorm:"primarykey"`
 	Slug         string
 	Name         string
 	Description  string
