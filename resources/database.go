@@ -44,9 +44,9 @@ type SqliteDatabase struct {
 }
 
 const ImageFileView string = `
-	DROP VIEW IF EXISTS image_files;
+	DROP VIEW IF EXISTS image_with_files;
 
-	CREATE VIEW image_files AS
+	CREATE VIEW image_with_files AS
 		SELECT 
 			*,
 			(SELECT MIN(f2.width) FROM files f2 WHERE f2.image_id = image_id) AS min_width,
@@ -61,9 +61,9 @@ const ImageFileView string = `
 `
 
 const AlbumsAndImagesView string = `
-	DROP VIEW IF EXISTS albums_and_images;
+	DROP VIEW IF EXISTS albums_with_images;
 
-	CREATE VIEW albums_and_images AS
+	CREATE VIEW albums_with_images AS
 		SELECT *
 		FROM album_images ai
 		JOIN albums a ON ai.album_id  = a.album_id
@@ -71,9 +71,9 @@ const AlbumsAndImagesView string = `
 `
 
 const AlbumComputed string = `
-	DROP VIEW IF EXISTS album_computed;
+	DROP VIEW IF EXISTS album_covers;
 
-	CREATE VIEW album_computed AS
+	CREATE VIEW album_covers AS
 		SELECT 
 			a.album_id,
 			a.slug, 
@@ -83,7 +83,7 @@ const AlbumComputed string = `
 			(CASE WHEN a.cover_image_id <> "" 
 				THEN a.cover_image_id 
 				ELSE (SELECT aai.image_id 
-						FROM albums_and_images aai 
+						FROM albums_with_images aai 
 						WHERE aai.album_id = a.album_id 
 						LIMIT 1)
 			END) AS cover_image_id,
@@ -97,12 +97,12 @@ const AlbumComputed string = `
 `
 
 const AlbumImageFiles string = `
-	DROP VIEW IF EXISTS album_image_files;
+	DROP VIEW IF EXISTS album_images_with_files;
 
-	CREATE VIEW album_image_files AS
+	CREATE VIEW album_images_with_files AS
 		SELECT *
-		FROM image_files if2
-		LEFT JOIN albums_and_images aai ON aai.image_id = if2.image_id
+		FROM image_with_files if2
+		LEFT JOIN albums_with_images aai ON aai.image_id = if2.image_id
 		WHERE aai.album_id IS NOT NULL
 `
 
@@ -212,13 +212,13 @@ func (d *SqliteDatabase) ListAlbumsCovers(albums *[]AlbumFile, publishedOnly boo
 			latest_date,
 			cover_image_id,
 			public_url
-		FROM album_computed a
+		FROM album_covers a
 		INNER JOIN (SELECT i.image_id, public_url
 					FROM files f
 					JOIN images i ON i.image_id = f.image_id
 					WHERE width = (
 								SELECT MIN(width) 
-								FROM image_files if1
+								FROM image_with_files if1
 								WHERE if1.image_id = f.image_id 
 								AND if1.width > @minWidth OR if1.max_width < @minWidth 
 								)
@@ -310,9 +310,9 @@ func (d *SqliteDatabase) RemoveImageFromAlbum(albumId string, imageId string) er
 func (d *SqliteDatabase) ListAlbumImages(files *[]File, albumSlug string, minWidth int, limit int, offset int) error {
 	d.db.Raw(`
 		SELECT * 
-		FROM album_image_files aif 
+		FROM album_images_with_files aif 
 		WHERE  
-			width = (SELECT MIN(width) FROM image_files if2 WHERE if2.image_id = aif.image_id AND if2.width > 400) AND
+			width = (SELECT MIN(width) FROM image_with_files if2 WHERE if2.image_id = aif.image_id AND if2.width > 400) AND
 			slug = ?
 		ORDER BY date_time_original DESC;
 	`, albumSlug).Find(files)

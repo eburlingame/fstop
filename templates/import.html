@@ -49,7 +49,7 @@
 
         <select id="existingAlbumNameSelect" name="existingAlbumId" disabled="true">
           {{ range .albums }}
-          <option value="{{ .Id }}">
+          <option value="{{ .AlbumId }}">
             {{ .Name }}
           </option>
           {{ end }}
