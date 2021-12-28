@@ -25,6 +25,7 @@ type Database interface {
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
+	ListImageFiles(file *[]File, fileId string) error
 
 	ListAlbums(album *[]Album) error
 	ListAlbumsCovers(albums *[]AlbumFile, publishedOnly bool, minWidth int, limit int, offset int) error
@@ -244,6 +245,15 @@ func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error 
 		Order("width asc").
 		Where("image_id = ? AND width > ?", fileId, minWidth).
 		First(file)
+
+	return nil
+}
+
+func (d *SqliteDatabase) ListImageFiles(files *[]File, imageId string) error {
+	d.db.
+		Order("width asc").
+		Where("image_id = ?", imageId).
+		Find(files)
 
 	return nil
 }

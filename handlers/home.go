@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"strings"
 
 	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
@@ -22,6 +24,16 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 	}
 }
 
+func computeImageSrcSet(files []File) string {
+	srcs := []string{}
+
+	for _, file := range files {
+		srcs = append(srcs, fmt.Sprintf("%s %dw", file.PublicURL, file.Width))
+	}
+
+	return strings.Join(srcs, ", ")
+}
+
 func ImageGetHandler(r *Resources) gin.HandlerFunc {
 	type UriParams struct {
 		ImageId string `uri:"imageId" binding:"required"`
@@ -36,11 +48,12 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
-		var file File
-		r.Db.GetFile(&file, params.ImageId, 1000)
+		var files []File
+		r.Db.ListImageFiles(&files, params.ImageId)
 
 		c.HTML(http.StatusOK, "image.html", gin.H{
-			"file": file,
+			"smallestFile": files[0],
+			"srcSet":       computeImageSrcSet(files),
 		})
 	}
 }

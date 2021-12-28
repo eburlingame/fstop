@@ -17,7 +17,11 @@
 </style>
 
 <div class="imageContainer">
-  <img class="image" src="{{ .file.PublicURL }}" />
+  <img
+    class="image"
+    src="{{ .smallestFile.PublicURL }}"
+    srcset="{{ .srcSet }}"
+  />
 </div>
 
 {{ template "footer.html" . }}
