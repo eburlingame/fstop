@@ -52,6 +52,7 @@ func setupRouter() *gin.Engine {
 
 	r.GET("/login", EnsureNotLoggedIn(), LoginGetHandler(resources))
 	r.POST("/login", EnsureNotLoggedIn(), LoginPostHandler(resources))
+	r.POST("/logout", EnsureLoggedIn(), LogoutPostHandler(resources))
 
 	r.GET("/admin", EnsureLoggedIn(), AdminGetHandler(resources))
 

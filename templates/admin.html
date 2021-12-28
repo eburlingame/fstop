@@ -7,7 +7,7 @@
   <a class="button neighbored-right" href="/admin/import">Import Uploaded Images</a>
 </div>
 
-<div class="flex" style="margin-top: 20px">
+<div class="flex neighbored-top">
   <a class="button neighbored-right" href="/admin/albums">Albums</a>
 
   <form class="invisibleForm neighbored-right" method="post" action="/admin/albums">
@@ -15,4 +15,7 @@
   </form>
 </div>
 
+<form class="invisibleForm neighbored-top" method="post" action="/logout">
+  <button class="button" type="submit">Log out</button>
+</form>
 {{ template "footer.html" . }}

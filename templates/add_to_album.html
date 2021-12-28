@@ -6,29 +6,40 @@
   .previewImage {
     max-width: 300px;
     max-height: 150px;
+    margin: 0.25em;
   }
 
   .imageSelectorContainer {
       display: flex;
       flex-wrap: wrap;
+      justify-content: center;
   }
 </style>
 
-<form target="/admin/albums/{{ .album.Slug }}/add" method="post">
+<form action="/admin/albums/{{ .album.Slug }}/add" method="post">
     <div class='imageSelectorContainer'>
         {{ range .files }}
         <div id="file-{{ .ImageId }}">
-            <img class="previewImage" src="{{ .PublicURL }}" />
+            <img class="previewImage" src="{{ .PublicURL }}" onclick="onPhotoClick('{{ .ImageId }}')" />
             
             <br />
-            <input type="checkbox" name="images" value="{{ .ImageId }}">
+            <input id="{{ .ImageId }}" type="checkbox" name="images" value="{{ .ImageId }}">
             Add to album
             </input>
         </div>
         {{ end }}
     </div>
 
-    <button type="submit">Add to album</button>
+    <div class="neighbored-top centered">
+      <button type="submit" class="button">Add to album</button>
+    </div>
 </form>
+
+<script>
+  function onPhotoClick(photoId) {
+    const checkbox = document.getElementById(photoId)
+    checkbox.checked = !checkbox.checked;
+  }
+</script>
 
 {{ template "footer.html" . }}

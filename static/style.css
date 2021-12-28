@@ -120,6 +120,10 @@ button.button {
   margin-bottom: 0.5em;
 }
 
+.neighbored-top {
+  margin-top: 1em;
+}
+
 .indented {
   margin-left: 1em;
 }

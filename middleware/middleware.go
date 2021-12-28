@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -12,7 +13,9 @@ func EnsureLoggedIn() gin.HandlerFunc {
 		session := sessions.Default(c)
 
 		username := session.Get("authed_user")
-		if username == nil {
+		fmt.Println(username)
+
+		if username == nil || username == "" {
 			c.Redirect(http.StatusFound, "/login")
 			return
 		}

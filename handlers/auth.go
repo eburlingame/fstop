@@ -51,3 +51,14 @@ func LoginPostHandler(r *Resources) gin.HandlerFunc {
 		})
 	}
 }
+
+func LogoutPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+
+		session.Clear()
+		session.Save()
+
+		c.Redirect(http.StatusFound, "/")
+	}
+}

@@ -3,6 +3,7 @@ package resources
 import (
 	"bytes"
 	"io/ioutil"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -80,9 +81,12 @@ func (s *S3Storage) ListFiles(prefix string) ([]string, error) {
 		return nil, err
 	}
 
-	names := make([]string, len(list.Contents))
-	for i, object := range list.Contents {
-		names[i] = *object.Key
+	names := []string{}
+	for _, object := range list.Contents {
+		// Filter out directories
+		if !strings.HasSuffix(*object.Key, "/") {
+			names = append(names, *object.Key)
+		}
 	}
 
 	return names, nil

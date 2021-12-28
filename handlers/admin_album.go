@@ -87,6 +87,7 @@ func AdminAddPhotosGetHandler(r *Resources) gin.HandlerFunc {
 
 		c.HTML(200, "add_to_album.html", gin.H{
 			"files": files,
+			"album": album,
 		})
 	}
 }
