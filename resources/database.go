@@ -269,7 +269,7 @@ func (d *SqliteDatabase) AddAlbum(album Album) error {
 }
 
 func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
-	d.db.Delete(&Album{}, albumId)
+	d.db.Where("album_id = ?", albumId).Delete(&Album{})
 	d.db.Where("album_id = ?", albumId).Delete(&AlbumImage{})
 
 	return nil

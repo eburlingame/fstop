@@ -13,11 +13,11 @@ import (
 func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
-		var albumCovers []AlbumFile
-		r.Db.ListAlbumsCovers(&albumCovers, false, 400, 1000, 0)
+		var albums []Album
+		r.Db.ListAlbums(&albums)
 
 		c.HTML(http.StatusOK, "admin_albums.html", gin.H{
-			"albums": albumCovers,
+			"albums": albums,
 		})
 	}
 }

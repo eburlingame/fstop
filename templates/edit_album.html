@@ -1,63 +1,162 @@
 {{ template "header.html" "Edit Album" }}
 
-<h2>Edit Album {{ .album.Name }}</h2>
+<div class="editorContainer">
+  <h2>Edit Album {{ .album.Name }}</h2>
 
-<form action="/admin/albums/{{ .album.Slug }}" method="post">
-  <label for="name">Album Name</label>
-  <input type="text" name="name" value="{{ .album.Name }}" />
+  <form
+    class="editAlbumForm"
+    action="/admin/albums/{{ .album.Slug }}"
+    method="post"
+  >
+    <div class="twoFormColumn">
+      <div class="formColumn neighbored-right">
+        <label for="name">Album Name</label>
+        <input type="text" name="name" value="{{ .album.Name }}" />
+      </div>
 
-  <br />
+      <div class="formColumn">
+        <label for="name">URL Slug</label>
+        <input type="text" name="slug" value="{{ .album.Slug }}" />
+      </div>
+    </div>
 
-  <label for="name">URL Slug</label>
-  <input type="text" name="slug" value="{{ .album.Slug }}" />
+    <label for="description">Album Description</label>
+    <textarea type="text" name="description">{{ .album.Description }}</textarea>
 
-  <br />
+    <label for="is_published"
+      >Publish Album?
+      <input
+        type="checkbox"
+        name="is_published"
+        {{if
+        .album.IsPublished
+        }}checked{{end}}
+      />
+    </label>
 
-  <label for="description">Album Description</label>
-  <input type="text" name="description" value="{{ .album.Description }}" />
+    <button
+      class="button neighbored-top"
+      style="max-width: 200px"
+      type="submit"
+    >
+      Save
+    </button>
+  </form>
 
-  <br />
+  <h3>Images</h3>
 
-  <label for="description">Publish Album?</label>
-  <input
-    type="checkbox"
-    name="is_published"
-    {{if
-    .album.IsPublished
-    }}checked{{end}}
-  />
+  <div class="previewImageGrid">
+    {{ range .files }}
+    <div class="previewImageContainer" id="file-{{ .ImageId }}">
+      <a href="/image/{{ .ImageId }}">
+        <img class="previewImage" src="{{ .PublicURL }}" />
+      </a>
 
-  <br />
-  <button type="submit">Update</button>
-</form>
+      <button
+        class="button"
+        style="font-size: 14px"
+        hx-delete="/admin/albums/{{ $.album.Slug }}/{{ .ImageId }}"
+        hx-target="#file-{{ .ImageId }}"
+      >
+        Remove from album
+      </button>
+    </div>
+    {{ end }}
+  </div>
+
+  <div class="buttonContainer">
+    <a
+      class="button neighbored-right"
+      href="/admin/albums/{{ $.album.Slug }}/add"
+    >
+      Add Photos
+    </a>
+
+    <form
+      id="deleteAlbumForm"
+      class="hiddenForm"
+      method="post"
+      action="/admin/albums/{{ .album.Slug }}/delete"
+    ></form>
+
+    <button class="button negative" onclick="onDeleteClick()">
+      Delete Album
+    </button>
+
+    <script>
+      function onDeleteClick(e) {
+        const confirmed = confirm(
+          "Are you sure you want to delete this album?"
+        );
+
+        if (confirm) {
+          const form = document.getElementById("deleteAlbumForm");
+          form.submit();
+        }
+      }
+    </script>
+  </div>
+</div>
 
 <style>
+  .editorContainer {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 900px;
+  }
+
+  .editAlbumForm {
+    display: flex;
+    flex-direction: column;
+  }
+
+  input,
+  textarea {
+    margin-bottom: 1em;
+    font-size: 18px;
+    background-color: #111;
+    color: #fff;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 5px;
+  }
+
+  .twoFormColumn {
+    display: flex;
+  }
+
+  .formColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    color: #ccc;
+    margin-bottom: 5px;
+  }
+
+  .previewImageGrid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .previewImageContainer {
+    display: flex;
+    flex-direction: column;
+    max-width: 200px;
+    margin: 10px;
+  }
+
   .previewImage {
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .buttonContainer {
+    margin-top: 20px;
+    display: flex;
   }
 </style>
-
-{{ range .files }}
-<div id="file-{{ .ImageId }}">
-  <a href="/image/{{ .ImageId }}">
-    <img class="previewImage" src="{{ .PublicURL }}" />
-  </a>
-
-  <br />
-  <button
-    hx-delete="/admin/albums/{{ $.album.Slug }}/{{ .ImageId }}"
-    hx-target="#file-{{ .ImageId }}"
-  >
-    Remove from album
-  </button>
-</div>
-{{ end }}
-
-<a href="/admin/albums/{{ $.album.Slug }}/add"> Add to Album </a>
-
-<form method="post" action="/admin/albums/{{ .album.Slug }}/delete">
-  <button type="submit">Delete Album</button>
-</form>
 
 {{ template "footer.html" . }}

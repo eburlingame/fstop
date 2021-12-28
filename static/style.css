@@ -81,6 +81,14 @@ button.button {
   display: inline-block;
 }
 
+.button.negative {
+  background-color: rgb(125, 0, 0);
+}
+
+.button.negative:hover {
+  background-color: rgb(106, 0, 0);
+}
+
 .flex {
   display: flex;
   align-items: stretch;
