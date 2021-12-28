@@ -5,9 +5,17 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Configuration struct {
+	Secret string
+
+	SQLiteFilepath string
+
+	AdminUsername     string
+	AdminPasswordHash []byte
+
 	S3BucketName   string
 	S3BucketRegion string
 	S3MediaFolder  string
@@ -20,7 +28,20 @@ func GetConfig() *Configuration {
 		log.Print(err)
 	}
 
+	password := os.Getenv("ADMIN_PASSWORD")
+	password_bytes := []byte(password)
+	hashedPassword, err := bcrypt.GenerateFromPassword(password_bytes, bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+
 	return &Configuration{
+		Secret:         os.Getenv("SECRET"),
+		SQLiteFilepath: os.Getenv("SQLITE_FILE"),
+
+		AdminUsername:     os.Getenv("ADMIN_USERNAME"),
+		AdminPasswordHash: hashedPassword,
+
 		S3BucketName:   os.Getenv("S3_BUCKET_NAME"),
 		S3BucketRegion: os.Getenv("S3_BUCKET_REGION"),
 		S3MediaFolder:  os.Getenv("S3_BUCKET_MEDIA_FOLDER"),

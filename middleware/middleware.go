@@ -1,33 +1,34 @@
 package middleware
 
 import (
-	"fmt"
 	"net/http"
+
+	. "github.com/eburlingame/fstop/resources"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
-func EnsureLoggedIn() gin.HandlerFunc {
+const SESSION_USERNAME_KEY = "authed_user"
+
+func EnsureLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
+		username := session.Get(SESSION_USERNAME_KEY)
 
-		username := session.Get("authed_user")
-		fmt.Println(username)
-
-		if username == nil || username == "" {
+		if username != r.Config.AdminUsername {
 			c.Redirect(http.StatusFound, "/login")
 			return
 		}
 	}
 }
 
-func EnsureNotLoggedIn() gin.HandlerFunc {
+func EnsureNotLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
+		username := session.Get(SESSION_USERNAME_KEY)
 
-		username := session.Get("authed_user")
-		if username != nil {
+		if username == r.Config.AdminUsername {
 			c.Redirect(http.StatusFound, "/admin")
 			return
 		}
