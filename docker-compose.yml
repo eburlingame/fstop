@@ -1,0 +1,31 @@
+version: "3.6"
+
+services:
+  photos:
+    build: .
+    container_name: fstop
+    restart: always
+    ports:
+      - "5000:8080"
+    volumes:
+      - photos-data:/data/
+
+    environment:
+      SECRET: "VSp4nQn7KHPRK9wNZrjCYHSJs"
+
+      SQLITE_FILE: "data/test.db"
+
+      ADMIN_USERNAME: "test"
+      ADMIN_PASSWORD: "test"
+
+      S3_BUCKET_NAME: "fstop-local"
+      S3_BUCKET_REGION: "us-west-2"
+      S3_BUCKET_MEDIA_FOLDER: "media"
+      S3_BUCKET_UPLOAD_FOLDER: "upload"
+      S3_BUCKET_PUBLIC_BASE_URL: "https://fstop-local.s3.us-west-2.amazonaws.com/"
+
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+
+volumes:
+  photos-data: null

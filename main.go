@@ -42,7 +42,7 @@ func setupRouter() *gin.Engine {
 		log.Fatal(err)
 	}
 
-	router.StaticFile("/static/style.css", "./static/style.css")
+	router.Static("/static/", "./static/")
 
 	router.GET("/", HomeGetHandler(r))
 	router.GET("/image/:imageId", ImageGetHandler(r))
