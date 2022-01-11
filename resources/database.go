@@ -19,13 +19,14 @@ type Database interface {
 	GetImage(image *Image, imageId string) error
 	GetImagesInImportBatch(images *[]Image, batchId string)
 	AddImage(image *Image) error
+	DeleteImage(imageId string) error
 	UpdateImageProcessedStatus(imageId string, isProcessed bool) error
 
 	ListLatestPhotos(photos *[]File, minWidth int, limit int, offset int) error
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
-	ListImageFiles(file *[]File, fileId string) error
+	ListImageFiles(file *[]File, imageId string) error
 
 	ListAlbums(album *[]Album) error
 	ListAlbumsCovers(albums *[]AlbumFile, publishedOnly bool, minWidth int, limit int, offset int) error
@@ -150,6 +151,14 @@ func (d *SqliteDatabase) GetImage(image *Image, fileId string) error {
 
 func (d *SqliteDatabase) AddImage(image *Image) error {
 	d.db.Create(image)
+
+	return nil
+}
+
+func (d *SqliteDatabase) DeleteImage(imageId string) error {
+	d.db.Where("image_id = ?", imageId).Delete(&Image{})
+	d.db.Where("image_id = ?", imageId).Delete(&AlbumImage{})
+	d.db.Where("image_id = ?", imageId).Delete(&File{})
 
 	return nil
 }

@@ -11,12 +11,18 @@ import (
 
 const SESSION_USERNAME_KEY = "authed_user"
 
+func IsLoggedIn(r *Resources, c *gin.Context) bool {
+	session := sessions.Default(c)
+	username := session.Get(SESSION_USERNAME_KEY)
+
+	return username == r.Config.AdminUsername
+}
+
 func EnsureLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		username := session.Get(SESSION_USERNAME_KEY)
 
-		if username != r.Config.AdminUsername {
+		if !IsLoggedIn(r, c) {
 			session.Clear()
 			session.Save()
 
@@ -24,15 +30,14 @@ func EnsureLoggedIn(r *Resources) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
+		c.Set("isAdmin", true)
 	}
 }
 
 func EnsureNotLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		username := session.Get(SESSION_USERNAME_KEY)
-
-		if username == r.Config.AdminUsername {
+		if IsLoggedIn(r, c) {
 			c.Redirect(http.StatusFound, "/admin")
 			c.Abort()
 			return

@@ -63,6 +63,7 @@ func setupRouter() *gin.Engine {
 	router.POST("/admin/albums/:albumSlug/add", EnsureLoggedIn(r), AdminAddPhotosPostHandler(r))
 	router.POST("/admin/albums/:albumSlug", EnsureLoggedIn(r), AdminEditAlbumPostHandler(r))
 	router.POST("/admin/albums/:albumSlug/delete", EnsureLoggedIn(r), AdminDeleteAlbumPostHandler(r))
+	router.POST("/admin/images/:imageId/delete", EnsureLoggedIn(r), AdminDeleteImagePostHandler(r))
 	router.DELETE("/admin/albums/:albumSlug/:imageId", EnsureLoggedIn(r), AdminRemoveImageFromAlbumPostHandler(r))
 
 	router.GET("/admin/upload", EnsureLoggedIn(r), AdminUploadGet(r))
@@ -77,6 +78,6 @@ func setupRouter() *gin.Engine {
 
 func main() {
 	r := setupRouter()
-	// Listen and Server in 0.0.0.0:8080
+	// Listen and serve on 0.0.0.0:8080
 	r.Run(":8080")
 }

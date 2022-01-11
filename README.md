@@ -1,1 +1,3 @@
-# fstop: Dead simple photo hosting
+# fstop: Dead simple photo sharing system
+
+

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	. "github.com/eburlingame/fstop/middleware"
 	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 
@@ -35,11 +36,14 @@ func computeImageSrcSet(files []File) string {
 }
 
 func ImageGetHandler(r *Resources) gin.HandlerFunc {
+
 	type UriParams struct {
 		ImageId string `uri:"imageId" binding:"required"`
 	}
 
 	return func(c *gin.Context) {
+		isAdmin := IsLoggedIn(r, c)
+
 		var params UriParams
 
 		err := c.BindUri(&params)
@@ -54,6 +58,7 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 		c.HTML(http.StatusOK, "image.html", gin.H{
 			"smallestFile": files[0],
 			"srcSet":       computeImageSrcSet(files),
+			"isAdmin":      isAdmin,
 		})
 	}
 }
