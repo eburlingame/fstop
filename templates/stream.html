@@ -14,7 +14,21 @@
 
   .grid-sizer,
   .grid-item {
-    width: calc(33.333% - 5px);
+    width: calc(100% - 5px);
+  }
+
+  @media screen and (min-width: 400px) {
+    .grid-sizer,
+    .grid-item {
+      width: calc(50% - 5px);
+    }
+  }
+
+  @media screen and (min-width: 1000px) {
+    .grid-sizer,
+    .grid-item {
+      width: calc(33.33% - 5px);
+    }
   }
 
   .grid-item {
