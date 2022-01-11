@@ -64,5 +64,10 @@
     gutter: 5,
   });
 
-  msnry.layout();
+  window.onload = function () {
+    msnry.layout();
+  };
+  imagesLoaded(grid).on("progress", function () {
+    msnry.layout();
+  });
 </script>

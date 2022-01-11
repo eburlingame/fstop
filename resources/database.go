@@ -87,6 +87,7 @@ const AlbumComputed string = `
 				ELSE (SELECT aai.image_id 
 						FROM albums_with_images aai 
 						WHERE aai.album_id = a.album_id 
+						ORDER BY date_time_original DESC
 						LIMIT 1)
 			END) AS cover_image_id,
 			(SELECT 

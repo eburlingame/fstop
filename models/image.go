@@ -10,11 +10,12 @@ import (
 const exifTag = "exifTag"
 
 type Image struct {
-	ImageId       string `gorm:"primarykey"`
-	ImportBatchId string
-	IsProcessed   bool
-	WidthPixels   uint64
-	HeightPixels  uint64
+	ImageId          string `gorm:"primarykey"`
+	ImportBatchId    string
+	OriginalFilename string
+	IsProcessed      bool
+	WidthPixels      uint64
+	HeightPixels     uint64
 
 	Files []File
 

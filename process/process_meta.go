@@ -3,6 +3,7 @@ package process
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	. "github.com/eburlingame/fstop/models"
@@ -73,9 +74,10 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 
 	// Create the image db entry
 	imageRecord := Image{
-		ImageId:       image.ImageId,
-		IsProcessed:   false,
-		ImportBatchId: image.ImportBatchId,
+		ImageId:          image.ImageId,
+		IsProcessed:      false,
+		ImportBatchId:    image.ImportBatchId,
+		OriginalFilename: filepath.Base(image.UploadFilePath),
 	}
 
 	// Populate database Image with exif tags
