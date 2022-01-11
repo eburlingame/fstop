@@ -178,14 +178,18 @@ func (d *SqliteDatabase) AddFile(file *File) error {
 	return nil
 }
 
+func preloadFilesQuery(db *gorm.DB) *gorm.DB {
+	return db.Order("files.width ASC")
+}
+
 func (d *SqliteDatabase) ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error) {
 	var images []Image
 
-	d.db.Preload("Files").
+	d.db.Preload("Files", preloadFilesQuery).
 		Limit(limit).
 		Offset(offset).
-		Find(&images).
-		Order("date_time_original ASC, width ASC")
+		Order("date_time_original desc").
+		Find(&images)
 
 	sizedFiles := []File{}
 

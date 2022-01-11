@@ -46,12 +46,9 @@
   <div class="grid-sizer"></div>
 
   {{ range . }}
-  <div class="grid-item">
+  <div class="grid-item" style="aspect-ratio: {{ .Width }} / {{ .Height }};">
     <a href="/image/{{ .ImageId }}" class="streamLink">
-      <img
-        src="{{ .PublicURL }}"
-        style="aspect-ratio: {{ .Width }} / {{ .Height }};"
-      />
+      <img src="{{ .PublicURL }}" />
     </a>
   </div>
   {{ end }}
