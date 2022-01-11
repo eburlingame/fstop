@@ -182,9 +182,9 @@ func (d *SqliteDatabase) ListLatestPhotos(minWidth int, limit int, offset int) (
 	var images []Image
 
 	d.db.Preload("Files").
-		Find(&images).
 		Limit(limit).
 		Offset(offset).
+		Find(&images).
 		Order("date_time_original ASC, width ASC")
 
 	sizedFiles := []File{}

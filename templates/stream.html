@@ -34,7 +34,10 @@
   {{ range . }}
   <div class="grid-item">
     <a href="/image/{{ .ImageId }}" class="streamLink">
-      <img src="{{ .PublicURL }}" />
+      <img
+        src="{{ .PublicURL }}"
+        style="aspect-ratio: {{ .Width }} / {{ .Height }};"
+      />
     </a>
   </div>
   {{ end }}
@@ -50,7 +53,5 @@
     gutter: 5,
   });
 
-  imagesLoaded(grid).on("done", function () {
-    msnry.layout();
-  });
+  msnry.layout();
 </script>
