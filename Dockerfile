@@ -2,7 +2,7 @@
 FROM golang:1.16.3-alpine3.13 AS build-env
 
 RUN apk add --update --no-cache --virtual .tmp-build-deps \
-    gcc libc-dev linux-headers postgresql-dev musl-dev zlib zlib-dev \
+    gcc libc-dev linux-headers musl-dev zlib zlib-dev \
     libressl-dev libffi-dev
 RUN apk add vips-dev
 
@@ -25,7 +25,7 @@ RUN go build -o /server .
 FROM alpine:3.13
 
 RUN apk add --update --no-cache --virtual .tmp-build-deps \
-    gcc libc-dev linux-headers postgresql-dev musl-dev zlib zlib-dev \
+    gcc libc-dev linux-headers musl-dev zlib zlib-dev \
     libressl-dev libffi-dev
 RUN apk add vips-dev exiftool
 

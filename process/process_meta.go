@@ -44,14 +44,24 @@ func extractExif(localPath string) (map[string]string, error) {
 	return valueMap, nil
 }
 
+func ensureTempDirExists() {
+	os.MkdirAll(os.TempDir(), os.ModePerm)
+}
+
 func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file []byte) error {
 	defer wg.Done()
 
+	ensureTempDirExists()
+
 	extension := GetExtension(image.UploadFilePath)
-	tempPath := "temp/" + image.ImageId + extension
+	tempPath := os.TempDir() + image.ImageId + extension
 
 	// Write to temporary file
-	bimg.Write(tempPath, file)
+	err := bimg.Write(tempPath, file)
+	if err != nil {
+		fmt.Printf("Error writing temporary file: %s\n", err)
+		return err
+	}
 	defer os.Remove(tempPath)
 
 	// Extract image EXIF data
