@@ -2,6 +2,7 @@ package resources
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -53,6 +54,10 @@ func (s *S3Storage) PutFile(contents []byte, destPath string, contentType string
 		ContentType:          aws.String(contentType),
 		ServerSideEncryption: aws.String("AES256"),
 	})
+
+	if err != nil {
+		fmt.Printf("Error uploading file: %s", err)
+	}
 
 	return err
 }
