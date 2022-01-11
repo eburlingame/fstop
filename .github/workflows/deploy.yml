@@ -64,5 +64,5 @@ jobs:
         run: |
           curl --request POST \
           --form "token=${{ secrets.DEPLOY_TRIGGER_TOKEN }}" \
-          -F "variables[ANSIBLE_PLAYBOOK]=photos.deploy.yml" \
+          -F "variables[ANSIBLE_PLAYBOOK]=fstop.deploy.yml" \
           --form ref=master "${{ secrets.DEPLOY_TRIGGER_URL }}"
