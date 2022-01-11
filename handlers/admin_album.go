@@ -13,7 +13,6 @@ import (
 
 func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-
 		var albums []Album
 		r.Db.ListAlbums(&albums)
 
@@ -83,8 +82,7 @@ func AdminAddPhotosGetHandler(r *Resources) gin.HandlerFunc {
 		var album Album
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
 
-		var files []File
-		r.Db.ListLatestPhotos(&files, 200, 100, 0)
+		files, err := r.Db.ListLatestPhotos(400, 100, 0)
 
 		c.HTML(200, "add_to_album.html", gin.H{
 			"files": files,

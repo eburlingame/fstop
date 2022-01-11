@@ -22,7 +22,7 @@ type Database interface {
 	DeleteImage(imageId string) error
 	UpdateImageProcessedStatus(imageId string, isProcessed bool) error
 
-	ListLatestPhotos(photos *[]File, minWidth int, limit int, offset int) error
+	ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error)
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
@@ -178,24 +178,35 @@ func (d *SqliteDatabase) AddFile(file *File) error {
 	return nil
 }
 
-func (d *SqliteDatabase) ListLatestPhotos(files *[]File, minWidth int, limit int, offset int) error {
-	d.db.Raw(`
-		SELECT *
-		FROM files
-		JOIN images i ON i.image_id  = files.image_id
-		WHERE width = (SELECT MIN(width) 
-			FROM files f 
-			WHERE f.image_id = files.image_id 
-			AND f.width > ? OR 
-				(SELECT MAX(width) FROM files f1 WHERE f1.image_id = files.image_id) < ?
-			)
-		ORDER BY i.date_time_original DESC
-		LIMIT ?
-		OFFSET ?
-		`, minWidth, minWidth, limit, offset).
-		Find(files)
+func (d *SqliteDatabase) ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error) {
+	var images []Image
 
-	return nil
+	d.db.Preload("Files").
+		Find(&images).
+		Limit(limit).
+		Offset(offset).
+		Order("date_time_original ASC, width ASC")
+
+	sizedFiles := []File{}
+
+	for _, image := range images {
+		sizeFound := false
+
+		for _, file := range image.Files {
+			if file.Width > uint64(minWidth) {
+				sizedFiles = append(sizedFiles, file)
+				sizeFound = true
+				break
+			}
+		}
+
+		if !sizeFound {
+			largestFile := image.Files[len(image.Files)-1]
+			sizedFiles = append(sizedFiles, largestFile)
+		}
+	}
+
+	return sizedFiles, nil
 }
 
 type AlbumFile struct {

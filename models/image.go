@@ -16,6 +16,8 @@ type Image struct {
 	WidthPixels   uint64
 	HeightPixels  uint64
 
+	Files []File
+
 	// EXIF data
 	Aperture                 float64   `exifTag:"Aperture"`
 	ApertureValue            float64   `exifTag:"ApertureValue"`
