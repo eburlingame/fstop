@@ -14,7 +14,7 @@ import (
 
 func HomeGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		files, _ := r.Db.ListLatestPhotos(400, 20, 0)
+		files, _ := r.Db.ListLatestPhotos(400, 10, 0)
 
 		c.HTML(http.StatusOK, "home.html", gin.H{
 			"title": "Main website",
