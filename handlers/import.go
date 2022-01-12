@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	. "github.com/eburlingame/fstop/models"
@@ -83,6 +84,94 @@ func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
 	return albumId, nil
 }
 
+func performImport(r *Resources, names []string, albumId string) string {
+	importBatchId := Uuid()
+	images := []ImageImport{}
+
+	for _, value := range names {
+		images = append(images, ImageImport{
+			ImageId:        Uuid(),
+			ImportBatchId:  importBatchId,
+			AlbumId:        albumId,
+			UploadFilePath: r.Config.S3UploadFolder + "/" + value,
+
+			Sizes: []OutputImageSize{
+				{
+					LongEdge:    200,
+					Suffix:      "_thumb",
+					Format:      "png",
+					Extension:   ".png",
+					ContentType: "image/png",
+				},
+				{
+					LongEdge:    600,
+					Suffix:      "_small",
+					Format:      "png",
+					Extension:   ".png",
+					ContentType: "image/png",
+				},
+				{
+					LongEdge:    1080,
+					Suffix:      "_medium",
+					Format:      "png",
+					Extension:   ".png",
+					ContentType: "image/png",
+				},
+				{
+					LongEdge:    1920,
+					Suffix:      "_large",
+					Format:      "png",
+					Extension:   ".png",
+					ContentType: "image/png",
+				},
+			},
+		})
+	}
+
+	for _, image := range images {
+		r.Db.AddImageImport(image.ImportBatchId, image.ImageId, filepath.Base(image.UploadFilePath))
+	}
+
+	batch := ImportBatchRequest{
+		ImportBatchId: importBatchId,
+		Images:        images,
+	}
+
+	go ImportImageBatch(r, batch)
+
+	return importBatchId
+}
+
+type ImportStatus struct {
+	IsProcessed bool   `json:"isProcessed"`
+	Filename    string `json:"filename"`
+	URL         string `json:"url"`
+}
+
+func getImportStatuses(r *Resources, importBatchId string) (bool, []ImportStatus) {
+	var images []ImageImportTask
+	r.Db.GetImagesInImportBatch(&images, importBatchId)
+
+	statuses := make([]ImportStatus, len(images))
+	allProcessed := true
+
+	for i, img := range images {
+		statuses[i].IsProcessed = img.IsProcessed
+		statuses[i].Filename = img.Filename
+
+		if img.IsProcessed {
+			var file File
+			r.Db.GetFile(&file, img.ImageId, 100)
+
+			statuses[i].URL = file.PublicURL
+		} else {
+			allProcessed = false
+		}
+	}
+
+	return allProcessed, statuses
+}
+
 func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		names, _ := c.GetPostFormArray("names")
@@ -95,54 +184,7 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
-		images := []ImageImport{}
-
-		for _, value := range names {
-			images = append(images, ImageImport{
-				ImageId:        Uuid(),
-				ImportBatchId:  importBatchId,
-				AlbumId:        albumId,
-				UploadFilePath: r.Config.S3UploadFolder + "/" + value,
-
-				Sizes: []OutputImageSize{
-					{
-						LongEdge:    200,
-						Suffix:      "_thumb",
-						Format:      "png",
-						Extension:   ".png",
-						ContentType: "image/png",
-					},
-					{
-						LongEdge:    600,
-						Suffix:      "_small",
-						Format:      "png",
-						Extension:   ".png",
-						ContentType: "image/png",
-					},
-					{
-						LongEdge:    1080,
-						Suffix:      "_medium",
-						Format:      "png",
-						Extension:   ".png",
-						ContentType: "image/png",
-					},
-					{
-						LongEdge:    1920,
-						Suffix:      "_large",
-						Format:      "png",
-						Extension:   ".png",
-						ContentType: "image/png",
-					},
-				},
-			})
-		}
-
-		batch := ImportBatchRequest{
-			ImportBatchId: importBatchId,
-			Images:        images,
-		}
-
-		go ImportImageBatch(r, batch)
+		performImport(r, names, albumId)
 
 		c.HTML(200, "import_complete.html", gin.H{
 			"importBatchId": importBatchId,
@@ -164,35 +206,88 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 			return
 		}
 
-		var images []Image
-		r.Db.GetImagesInImportBatch(&images, params.BatchId)
-		fmt.Println(images)
-
-		type Status struct {
-			IsProcessed bool
-			URL         string
-		}
-
-		statuses := make([]Status, len(images))
-		allProcessed := true
-
-		for i, img := range images {
-			statuses[i].IsProcessed = img.IsProcessed
-
-			if img.IsProcessed {
-				var file File
-
-				r.Db.GetFile(&file, img.ImageId, 100)
-				statuses[i].URL = file.PublicURL
-			} else {
-				allProcessed = false
-			}
-		}
+		allProcessed, statuses := getImportStatuses(r, params.BatchId)
 
 		c.HTML(http.StatusOK, "import_status_table.html", gin.H{
 			"poll":          !allProcessed || len(statuses) == 0,
 			"statuses":      statuses,
 			"importBatchId": params.BatchId,
+		})
+	}
+}
+
+type ImportApiRequest struct {
+	Names           []string `json:"names"`
+	NewAlbumName    string   `json:"newAlbumName,omitempty"`
+	ExistingAlbumId string   `json:"existingAlbumId,omitempty"`
+}
+
+func ImportApiPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var importRequest ImportApiRequest
+
+		err := c.Bind(&importRequest)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Unrecognized payload: %s", err)})
+			return
+		}
+
+		albumId := ""
+
+		if strings.Trim(importRequest.NewAlbumName, " ") != "" {
+			albumId = Uuid()
+
+			r.Db.AddAlbum(Album{
+				AlbumId:      albumId,
+				Name:         importRequest.NewAlbumName,
+				Slug:         slug.Make(importRequest.NewAlbumName),
+				Description:  "",
+				CoverImageId: "",
+				IsPublished:  false,
+			})
+		}
+
+		if importRequest.ExistingAlbumId != "" {
+			var album Album
+			r.Db.GetAlbum(&album, importRequest.ExistingAlbumId)
+
+			if album.AlbumId == "" {
+				c.JSON(http.StatusBadRequest, gin.H{
+					"error": fmt.Sprintf("Unknown album: %s", album.AlbumId),
+				})
+				return
+			}
+
+			albumId = importRequest.ExistingAlbumId
+		}
+
+		batchId := performImport(r, importRequest.Names, albumId)
+
+		c.JSON(200, gin.H{
+			"importBatchId": batchId,
+		})
+	}
+}
+
+func ImportStateApiGetHandler(r *Resources) gin.HandlerFunc {
+	type UriParams struct {
+		BatchId string `uri:"batchId" binding:"required"`
+	}
+
+	return func(c *gin.Context) {
+		var params UriParams
+
+		err := c.BindUri(&params)
+		if err != nil {
+			c.Status(404)
+			return
+		}
+
+		allProcessed, statuses := getImportStatuses(r, params.BatchId)
+
+		c.JSON(http.StatusOK, gin.H{
+			"poll":     allProcessed,
+			"statuses": statuses,
 		})
 	}
 }

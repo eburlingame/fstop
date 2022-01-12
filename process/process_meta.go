@@ -75,7 +75,6 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	// Create the image db entry
 	imageRecord := Image{
 		ImageId:          image.ImageId,
-		IsProcessed:      false,
 		ImportBatchId:    image.ImportBatchId,
 		OriginalFilename: filepath.Base(image.UploadFilePath),
 	}

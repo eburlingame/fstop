@@ -73,6 +73,9 @@ func setupRouter() *gin.Engine {
 	router.POST("/admin/import", EnsureLoggedIn(r), AdminImportPostHandler(r))
 	router.GET("/admin/import/status/:batchId", EnsureLoggedIn(r), AdminImportStatusGetHandler(r))
 
+	router.POST("/api/v1/admin/import", EnsureApiKeyPresent(r), ImportApiPostHandler(r))
+	router.GET("/api/v1/admin/import/:batchId", EnsureApiKeyPresent(r), ImportStateApiGetHandler(r))
+
 	return router
 }
 

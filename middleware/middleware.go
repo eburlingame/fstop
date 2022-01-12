@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/resources"
@@ -39,6 +40,19 @@ func EnsureNotLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if IsLoggedIn(r, c) {
 			c.Redirect(http.StatusFound, "/admin")
+			c.Abort()
+			return
+		}
+	}
+}
+
+func EnsureApiKeyPresent(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		correctHeader := fmt.Sprintf("Bearer %s", r.Config.ApiKey)
+		headerValue := c.GetHeader("Authorization")
+
+		if correctHeader != headerValue {
+			c.Status(http.StatusUnauthorized)
 			c.Abort()
 			return
 		}

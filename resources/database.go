@@ -17,9 +17,11 @@ import (
 
 type Database interface {
 	GetImage(image *Image, imageId string) error
-	GetImagesInImportBatch(images *[]Image, batchId string)
+	GetImagesInImportBatch(images *[]ImageImportTask, batchId string)
 	AddImage(image *Image) error
 	DeleteImage(imageId string) error
+
+	AddImageImport(importBatchId string, imageId string, filename string) error
 	UpdateImageProcessedStatus(imageId string, isProcessed bool) error
 
 	ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error)
@@ -132,6 +134,7 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	db.AutoMigrate(&File{})
 	db.AutoMigrate(&Album{})
 	db.AutoMigrate(&AlbumImage{})
+	db.AutoMigrate(&ImageImportTask{})
 
 	db.Exec(ImageFileView)
 	db.Exec(AlbumsAndImagesView)
@@ -160,15 +163,27 @@ func (d *SqliteDatabase) DeleteImage(imageId string) error {
 	d.db.Where("image_id = ?", imageId).Delete(&Image{})
 	d.db.Where("image_id = ?", imageId).Delete(&AlbumImage{})
 	d.db.Where("image_id = ?", imageId).Delete(&File{})
+	d.db.Where("image_id = ?", imageId).Delete(&ImageImportTask{})
 
 	return nil
 }
 
-func (d *SqliteDatabase) UpdateImageProcessedStatus(fileId string, isProcessed bool) error {
-	var image Image
+func (d *SqliteDatabase) AddImageImport(importBatchId string, imageId string, filename string) error {
+	d.db.Create(&ImageImportTask{
+		ImageId:       imageId,
+		Filename:      filename,
+		ImportBatchId: importBatchId,
+		IsProcessed:   false,
+	})
 
-	d.db.First(&image, "image_id = ?", fileId)
-	d.db.Model(&image).Update("IsProcessed", isProcessed)
+	return nil
+}
+
+func (d *SqliteDatabase) UpdateImageProcessedStatus(imageId string, isProcessed bool) error {
+	var imageImport ImageImportTask
+
+	d.db.First(&imageImport, "image_id = ?", imageId)
+	d.db.Model(&imageImport).Update("IsProcessed", isProcessed)
 
 	return nil
 }
@@ -283,7 +298,7 @@ func (d *SqliteDatabase) ListImageFiles(files *[]File, imageId string) error {
 	return nil
 }
 
-func (d *SqliteDatabase) GetImagesInImportBatch(images *[]Image, batchId string) {
+func (d *SqliteDatabase) GetImagesInImportBatch(images *[]ImageImportTask, batchId string) {
 	d.db.Where("import_batch_id = ?", batchId).Find(&images)
 }
 

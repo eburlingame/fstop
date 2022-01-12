@@ -13,7 +13,6 @@ type Image struct {
 	ImageId          string `gorm:"primarykey"`
 	ImportBatchId    string
 	OriginalFilename string
-	IsProcessed      bool
 	WidthPixels      uint64
 	HeightPixels     uint64
 

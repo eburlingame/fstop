@@ -10,6 +10,7 @@ import (
 
 type Configuration struct {
 	Secret string
+	ApiKey string
 
 	SQLiteFilepath string
 
@@ -37,6 +38,7 @@ func GetConfig() *Configuration {
 
 	return &Configuration{
 		Secret:         os.Getenv("SECRET"),
+		ApiKey:         os.Getenv("API_KEY"),
 		SQLiteFilepath: os.Getenv("SQLITE_FILE"),
 
 		AdminUsername:     os.Getenv("ADMIN_USERNAME"),
