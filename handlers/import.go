@@ -176,15 +176,13 @@ func AdminImportPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		names, _ := c.GetPostFormArray("names")
 
-		importBatchId := Uuid()
-
 		albumId, err := getFormAlbumId(r, c)
 		if err != nil {
 			ImportSelectionPage(r, c, err)
 			return
 		}
 
-		performImport(r, names, albumId)
+		importBatchId := performImport(r, names, albumId)
 
 		c.HTML(200, "import_complete.html", gin.H{
 			"importBatchId": importBatchId,
@@ -207,6 +205,8 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		allProcessed, statuses := getImportStatuses(r, params.BatchId)
+
+		fmt.Println(statuses)
 
 		c.HTML(http.StatusOK, "import_status_table.html", gin.H{
 			"poll":          !allProcessed || len(statuses) == 0,
