@@ -43,6 +43,8 @@ func setupRouter() *gin.Engine {
 	}
 
 	router.Static("/static/", "./static/")
+	router.StaticFile("/favicon.ico", "./static/favicon.ico")
+	router.StaticFile("/robots.txt", "./static/robots.txt")
 
 	router.GET("/", HomeGetHandler(r))
 	router.GET("/image/:imageId", ImageGetHandler(r))
