@@ -286,8 +286,9 @@ func ImportStateApiGetHandler(r *Resources) gin.HandlerFunc {
 		allProcessed, statuses := getImportStatuses(r, params.BatchId)
 
 		c.JSON(http.StatusOK, gin.H{
-			"poll":     allProcessed,
-			"statuses": statuses,
+			"batchId":      params.BatchId,
+			"allProcessed": allProcessed,
+			"statuses":     statuses,
 		})
 	}
 }

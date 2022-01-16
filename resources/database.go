@@ -60,7 +60,6 @@ const ImageFileView string = `
 			SELECT * 
 			FROM files f
 		) as files ON files.image_id  = images.image_id 
-		WHERE images.is_processed = TRUE
 		ORDER BY date_time_original DESC;
 `
 
