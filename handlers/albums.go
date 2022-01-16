@@ -11,12 +11,11 @@ import (
 
 func AlbumsListGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var files []AlbumFile
 
-		r.Db.ListAlbumsCovers(&files, true, 400, 20, 0)
+		albums, _ := r.Db.ListAlbumsCovers(true, 400, 100, 0)
 
 		c.HTML(http.StatusOK, "albums.html", gin.H{
-			"files": files,
+			"albums": albums,
 		})
 	}
 }
@@ -36,10 +35,9 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		var album Album
-		var files []File
 
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
-		r.Db.ListAlbumImages(&files, params.AlbumSlug, 500, 50, 0)
+		files, _ := r.Db.ListAlbumImages(params.AlbumSlug, 500, 50, 0)
 
 		c.HTML(http.StatusOK, "album.html", gin.H{
 			"album": album,

@@ -51,11 +51,10 @@ func EditAlbumPage(r *Resources, c *gin.Context) {
 		return
 	}
 
-	var files []File
 	var album Album
 
 	r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
-	r.Db.ListAlbumImages(&files, params.AlbumSlug, 400, 1000, 0)
+	files, _ := r.Db.ListAlbumImages(params.AlbumSlug, 400, 20, 0)
 
 	c.HTML(http.StatusOK, "edit_album.html", gin.H{
 		"album": album,

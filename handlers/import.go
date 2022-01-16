@@ -243,7 +243,7 @@ func ImportApiPostHandler(r *Resources) gin.HandlerFunc {
 				Slug:         slug.Make(importRequest.NewAlbumName),
 				Description:  "",
 				CoverImageId: "",
-				IsPublished:  false,
+				IsPublished:  true,
 			})
 		}
 

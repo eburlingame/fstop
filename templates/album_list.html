@@ -41,6 +41,7 @@
     flex: 1;
     object-fit: contain;
     width: 100%;
+    height: 100%;
   }
 
   .albumsGrid {
@@ -58,7 +59,7 @@
 
   <a href="/album/{{ .Slug }}" class="streamLink">
     <div class="albumContainer">
-      <img class="streamImage" src="{{ .PublicURL }}" />
+      <img class="streamImage" src="{{ .File.PublicURL }}" />
       <div class="albumTitle">{{ .Name }}</div>
     </div>
   </a>
