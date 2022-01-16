@@ -14,34 +14,76 @@
     margin-left: auto;
     margin-right: auto;
   }
+  .infoBlock {
+    width: 100%;
+    display: flex;
+  }
+  .infoColumn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .image-title {
+    width: 100%;
+    font-weight: 600;
+    font-size: 24px;
+    text-align: left;
+  }
+  .image-meta {
+    width: 100%;
+    font-weight: 300;
+  }
 </style>
 
 <div class="imageContainer">
-  <img
-    class="image"
-    src="{{ .smallestFile.PublicURL }}"
-    srcset="{{ .srcSet }}"
-  />
+  <div>
+    <img
+      class="image"
+      src="{{ .smallestFile.PublicURL }}"
+      srcset="{{ .srcSet }}"
+    />
+
+    <div class="infoBlock">
+      <div class="infoColumn">
+        <div class="image-title">{{ .date }}</div>
+        <div class="image-meta">{{ .camera }}</div>
+        <div class="image-meta">{{ .meta }}</div>
+      </div>
+      <div class="infoColumn" style="text-align: right">
+        Image files: {{ range .files }}
+        <a href="{{ .PublicURL }}" target="_new">
+          {{ .Width }} x {{ .Height }} {{ if .IsOriginal }} (Original) {{ end }}
+        </a>
+        {{ end }}
+      </div>
+    </div>
+
+    {{ if .isAdmin }}
+    <form
+      id="deleteImageForm"
+      class="hiddenForm neighbored-top"
+      method="post"
+      action="/admin/images/{{ .smallestFile.ImageId }}/delete"
+    ></form>
+
+    <button class="button negative" onclick="onDeleteClick()">
+      Delete Image
+    </button>
+
+    <script>
+      function onDeleteClick(e) {
+        const confirmed = confirm(
+          "Are you sure you want to delete this image?"
+        );
+
+        if (confirmed) {
+          const form = document.getElementById("deleteImageForm");
+          form.submit();
+        }
+      }
+    </script>
+    {{ end }}
+  </div>
 </div>
 
-{{ if .isAdmin }}
-<form
-  id="deleteImageForm"
-  class="hiddenForm neighbored-top"
-  method="post"
-  action="/admin/images/{{ .smallestFile.ImageId }}/delete"
-></form>
-
-<button class="button negative" onclick="onDeleteClick()">Delete Image</button>
-
-<script>
-  function onDeleteClick(e) {
-    const confirmed = confirm("Are you sure you want to delete this image?");
-
-    if (confirmed) {
-      const form = document.getElementById("deleteImageForm");
-      form.submit();
-    }
-  }
-</script>
-{{ end }} {{ template "footer.html" . }}
+{{ template "footer.html" . }}

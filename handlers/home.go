@@ -51,12 +51,19 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		var files []File
+		var image Image
+
 		r.Db.ListImageFiles(&files, params.ImageId)
+		r.Db.GetImage(&image, params.ImageId)
 
 		c.HTML(http.StatusOK, "image.html", gin.H{
+			"files":        files,
 			"smallestFile": files[0],
 			"srcSet":       computeImageSrcSet(files),
 			"isAdmin":      isAdmin,
+			"date":         image.DateTimeOriginal.Format("Monday, January _2, 2006"),
+			"camera":       fmt.Sprintf("%s, %s", image.CameraModel, image.Lens),
+			"meta":         fmt.Sprintf("%s' f/%.1f ISO %.0f", image.ShutterSpeed, image.FNumber, image.ISO),
 		})
 	}
 }

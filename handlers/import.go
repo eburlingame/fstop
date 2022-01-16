@@ -206,8 +206,6 @@ func AdminImportStatusGetHandler(r *Resources) gin.HandlerFunc {
 
 		allProcessed, statuses := getImportStatuses(r, params.BatchId)
 
-		fmt.Println(statuses)
-
 		c.HTML(http.StatusOK, "import_status_table.html", gin.H{
 			"poll":          !allProcessed || len(statuses) == 0,
 			"statuses":      statuses,
