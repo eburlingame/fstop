@@ -37,7 +37,7 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 		var album Album
 
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
-		files, _ := r.Db.ListAlbumImages(params.AlbumSlug, 500, 50, 0)
+		files, _ := r.Db.ListAlbumImages(params.AlbumSlug, 500, 500, 0)
 
 		c.HTML(http.StatusOK, "album.html", gin.H{
 			"album": album,
