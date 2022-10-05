@@ -24,7 +24,8 @@ type Database interface {
 	AddImageImport(importBatchId string, imageId string, filename string) error
 	UpdateImageProcessedStatus(imageId string, isProcessed bool) error
 
-	ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error)
+	ListLatestFiles(minWidth int, limit int, offset int) ([]File, error)
+	ListLatestImages(limit int, offset int) ([]Image, error)
 
 	AddFile(file *File) error
 	GetFile(file *File, fileId string, minWidth int) error
@@ -41,6 +42,7 @@ type Database interface {
 	AddImageToAlbum(albumId string, imageId string) error
 	RemoveImageFromAlbum(albumId string, imageId string) error
 	ListAlbumImages(albumSlug string, minWidth int, limit int, offset int) ([]File, error)
+	ListAlbumFiles(albumSlug string) ([]AlbumWithImage, error)
 }
 
 type SqliteDatabase struct {
@@ -58,8 +60,16 @@ const AlbumWithImagesView string = `
 `
 
 type AlbumWithImage struct {
-	ImageId string
-	Files   []File `gorm:"foreignKey:ImageId;references:ImageId"`
+	ImageId          string
+	DateTimeOriginal time.Time
+	CameraModel      string
+	Lens             string
+	ShutterSpeed     string
+	FNumber          float64
+	ISO              float64
+	Width            uint64
+	Height           uint64
+	Files            []File `gorm:"foreignKey:ImageId;references:ImageId"`
 }
 
 const AlbumCovers string = `
@@ -186,7 +196,7 @@ func preloadFilesQuery(db *gorm.DB) *gorm.DB {
 	return db.Order("files.width ASC")
 }
 
-func (d *SqliteDatabase) ListLatestPhotos(minWidth int, limit int, offset int) ([]File, error) {
+func (d *SqliteDatabase) ListLatestFiles(minWidth int, limit int, offset int) ([]File, error) {
 	var images []Image
 
 	d.db.Preload("Files", preloadFilesQuery).
@@ -202,6 +212,18 @@ func (d *SqliteDatabase) ListLatestPhotos(minWidth int, limit int, offset int) (
 	}
 
 	return sizedFiles, nil
+}
+
+func (d *SqliteDatabase) ListLatestImages(limit int, offset int) ([]Image, error) {
+	var images []Image
+
+	d.db.Preload("Files", preloadFilesQuery).
+		Limit(limit).
+		Offset(offset).
+		Order("date_time_original desc").
+		Find(&images)
+
+	return images, nil
 }
 
 type AlbumListing struct {
@@ -342,4 +364,15 @@ func (d *SqliteDatabase) ListAlbumImages(albumSlug string, minWidth int, limit i
 	}
 
 	return sizedFiles, nil
+}
+
+func (d *SqliteDatabase) ListAlbumFiles(albumSlug string) ([]AlbumWithImage, error) {
+	var images []AlbumWithImage
+
+	d.db.Preload("Files", preloadFilesQuery).
+		Where("slug = ?", albumSlug).
+		Order("date_time_original DESC").
+		Find(&images)
+
+	return images, nil
 }

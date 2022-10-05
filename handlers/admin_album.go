@@ -81,7 +81,7 @@ func AdminAddPhotosGetHandler(r *Resources) gin.HandlerFunc {
 		var album Album
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
 
-		files, err := r.Db.ListLatestPhotos(400, 100, 0)
+		files, err := r.Db.ListLatestFiles(400, 100, 0)
 
 		c.HTML(200, "add_to_album.html", gin.H{
 			"files": files,

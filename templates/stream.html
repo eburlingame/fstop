@@ -40,18 +40,70 @@
     display: block;
     max-width: 100%;
   }
+
+  /* Additional description style */
+  .blueimp-gallery > .description {
+    position: absolute;
+    top: 30px;
+    left: 15px;
+    color: #fff;
+    display: none;
+  }
+  .blueimp-gallery-controls > .description {
+    display: block;
+  }
 </style>
 
-<div class="grid">
+<div class="grid" id="links">
   <div class="grid-sizer"></div>
 
   {{ range . }}
   <div class="grid-item" style="aspect-ratio: {{ .Width }} / {{ .Height }};">
-    <a href="/image/{{ .ImageId }}" class="streamLink">
-      <img src="{{ .PublicURL }}" />
+    <a href="{{ .SmallImageUrl }}" class="streamLink" title="Hi">
+      <img src="{{ .SmallImageUrl }}" />
     </a>
   </div>
   {{ end }}
+</div>
+
+<!-- The Gallery as lightbox dialog, should be a document body child element -->
+<div
+  id="blueimp-gallery"
+  class="blueimp-gallery"
+  aria-label="image gallery"
+  aria-modal="true"
+  role="dialog"
+>
+  <div class="slides" aria-live="polite"></div>
+  <a class="title"></a>
+  <p class="description"></p>
+  <a
+    class="prev"
+    aria-controls="blueimp-gallery"
+    aria-label="previous slide"
+    aria-keyshortcuts="ArrowLeft"
+  ></a>
+  <a
+    class="next"
+    aria-controls="blueimp-gallery"
+    aria-label="next slide"
+    aria-keyshortcuts="ArrowRight"
+  ></a>
+  <a
+    class="close"
+    aria-controls="blueimp-gallery"
+    aria-label="close"
+    aria-keyshortcuts="Escape"
+  ></a>
+  <a
+    class="play-pause"
+    aria-controls="blueimp-gallery"
+    aria-label="play slideshow"
+    aria-keyshortcuts="Space"
+    aria-pressed="false"
+    role="button"
+  ></a>
+  <ol class="indicator"></ol>
 </div>
 
 <script>
@@ -70,4 +122,49 @@
   imagesLoaded(grid).on("progress", function () {
     msnry.layout();
   });
+</script>
+
+<script src="/static/js/blueimp-gallery.min.js"></script>
+<script>
+  const images = [
+    {{ range . }}
+      {
+        title: "{{ .Title }}",
+        detailUrl: "/image/{{ .ImageId }}",
+        description: "{{ .Description }}",
+        href: "{{ .SmallImageUrl }}",
+        srcset: "{{ .SrcSet }}",
+        thumbnail: "{{ .SmallImageUrl }}"
+      },
+    {{ end }}
+  ];
+
+  document.getElementById("links").onclick = function (event) {
+    event = event || window.event;
+
+    const target = event.target || event.srcElement
+    const link = target.src ? target.parentNode : target
+    const options = {
+      index: link,
+      event: event,
+      onslide: function (index, slide) {
+        const image = images[index];
+
+        const titleNode = this.container.find('.title')[0];
+        titleNode.href = image.detailUrl;
+        titleNode.innerText = image.title;
+
+        const descriptionNode = this.container.find('.description');
+        const descriptionText = image.description;
+
+        descriptionNode.empty();
+
+        if (descriptionText) {
+          descriptionNode[0].appendChild(document.createTextNode(descriptionText));
+        }
+      }
+     }
+
+    blueimp.Gallery(images, options);
+  };
 </script>

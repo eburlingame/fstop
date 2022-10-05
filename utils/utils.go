@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 
 	"path/filepath"
@@ -42,6 +43,16 @@ func ResizeLongEdgeDimensions(width int, height int, longEdge int) (int, int) {
 
 		return int(float32(longEdge) * aspectRatio), longEdge
 	}
+}
+
+func ComputeImageSrcSet(files []File) string {
+	srcs := []string{}
+
+	for _, file := range files {
+		srcs = append(srcs, fmt.Sprintf("%s %dw", file.PublicURL, file.Width))
+	}
+
+	return strings.Join(srcs, ", ")
 }
 
 func FindSizedImage(files []File, minWidth int) File {
