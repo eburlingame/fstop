@@ -59,19 +59,6 @@ const AlbumWithImagesView string = `
 		JOIN images i ON i.image_id = ai.image_id;
 `
 
-type AlbumWithImage struct {
-	ImageId          string
-	DateTimeOriginal time.Time
-	CameraModel      string
-	Lens             string
-	ShutterSpeed     string
-	FNumber          float64
-	ISO              float64
-	Width            uint64
-	Height           uint64
-	Files            []File `gorm:"foreignKey:ImageId;references:ImageId"`
-}
-
 const AlbumCovers string = `
 	DROP VIEW IF EXISTS album_covers;
 

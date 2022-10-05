@@ -49,8 +49,8 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 				ImageId:       img.ImageId,
 				SrcSet:        ComputeImageSrcSet((img.Files)),
 				SmallImageUrl: FindSizedImage(img.Files, 500).PublicURL,
-				Width:         img.Width,
-				Height:        img.Height,
+				Width:         img.WidthPixels,
+				Height:        img.HeightPixels,
 				Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
 				Description:   metaDescription,
 			})
