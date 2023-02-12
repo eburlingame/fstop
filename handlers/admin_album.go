@@ -206,6 +206,7 @@ func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
 			deleteAndRemoveImage(r, file.ImageId)
 		}
 
+		println(len(images), " images deleted from album")
 		r.Db.DeleteAlbum(album.AlbumId)
 
 		c.Redirect(http.StatusFound, "/admin/albums")
