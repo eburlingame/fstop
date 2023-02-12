@@ -171,6 +171,22 @@ func AdminRemoveImageFromAlbumPostHandler(r *Resources) gin.HandlerFunc {
 	}
 }
 
+func deleteAndRemoveImage(r *Resources, imageId string) {
+	// Remove images from storage
+	var files []File
+	r.Db.ListImageFiles(&files, imageId)
+
+	for _, file := range files {
+		err := r.Storage.DeleteFile(file.StoragePath)
+		if err != nil {
+			fmt.Printf("Error deleting file: %s\n", err)
+		}
+	}
+
+	// Remove images from database
+	r.Db.DeleteImage(imageId)
+}
+
 func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		type DeleteAlbumUriParams struct {
@@ -180,8 +196,16 @@ func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
 		var params DeleteAlbumUriParams
 		c.BindUri(&params)
 
+		images, _ := r.Db.ListAlbumFiles(params.AlbumSlug)
+
 		var album Album
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
+
+		for _, file := range images {
+			println("Deleting image: ", file.ImageId)
+			deleteAndRemoveImage(r, file.ImageId)
+		}
+
 		r.Db.DeleteAlbum(album.AlbumId)
 
 		c.Redirect(http.StatusFound, "/admin/albums")
@@ -197,19 +221,7 @@ func AdminDeleteImagePostHandler(r *Resources) gin.HandlerFunc {
 		var params DeleteImageUriParams
 		c.BindUri(&params)
 
-		// Remove images from storage
-		var files []File
-		r.Db.ListImageFiles(&files, params.ImageId)
-
-		for _, file := range files {
-			err := r.Storage.DeleteFile(file.StoragePath)
-			if err != nil {
-				fmt.Printf("Error deleting file: %s\n", err)
-			}
-		}
-
-		// Remove images from database
-		r.Db.DeleteImage(params.ImageId)
+		deleteAndRemoveImage(r, params.ImageId)
 
 		c.Redirect(http.StatusFound, "/")
 	}
