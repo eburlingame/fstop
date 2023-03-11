@@ -21,15 +21,19 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 		for _, img := range images {
 			metaDescription := fmt.Sprintf("%s, %s (%s' f/%.1f ISO %.0f)", img.CameraModel, img.Lens, img.ShutterSpeed, img.FNumber, img.ISO)
 
-			imagesWithSrcSets = append(imagesWithSrcSets, ImageWithSrcSet{
-				ImageId:       img.ImageId,
-				SrcSet:        ComputeImageSrcSet((img.Files)),
-				SmallImageUrl: FindSizedImage(img.Files, 500).PublicURL,
-				Width:         img.WidthPixels,
-				Height:        img.HeightPixels,
-				Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
-				Description:   metaDescription,
-			})
+			smallImageUrl := FindSizedImage(img.Files, 500)
+
+			if smallImageUrl != nil {
+				imagesWithSrcSets = append(imagesWithSrcSets, ImageWithSrcSet{
+					ImageId:       img.ImageId,
+					SrcSet:        ComputeImageSrcSet((img.Files)),
+					SmallImageUrl: smallImageUrl.PublicURL,
+					Width:         img.WidthPixels,
+					Height:        img.HeightPixels,
+					Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
+					Description:   metaDescription,
+				})
+			}
 		}
 
 		c.HTML(http.StatusOK, "home.html", gin.H{

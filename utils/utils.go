@@ -55,15 +55,20 @@ func ComputeImageSrcSet(files []File) string {
 	return strings.Join(srcs, ", ")
 }
 
-func FindSizedImage(files []File, minWidth int) File {
+func FindSizedImage(files []File, minWidth int) *File {
+	fmt.Printf("files: %?", files)
+
+	if len(files) == 0 {
+		fmt.Println("Empty files")
+		return nil
+	}
 
 	for _, file := range files {
 		if file.Width > uint64(minWidth) {
-
-			return file
+			return &file
 		}
 	}
 
 	largestFile := files[len(files)-1]
-	return largestFile
+	return &largestFile
 }

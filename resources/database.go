@@ -195,7 +195,11 @@ func (d *SqliteDatabase) ListLatestFiles(minWidth int, limit int, offset int) ([
 	sizedFiles := []File{}
 
 	for _, image := range images {
-		sizedFiles = append(sizedFiles, FindSizedImage(image.Files, minWidth))
+		sizedImage := FindSizedImage(image.Files, minWidth)
+
+		if sizedImage != nil {
+			sizedFiles = append(sizedFiles, *sizedImage)
+		}
 	}
 
 	return sizedFiles, nil
@@ -242,16 +246,20 @@ func (d *SqliteDatabase) ListAlbumsCovers(publishedOnly bool, minWidth int, limi
 	listings := []AlbumListing{}
 
 	for _, cover := range covers {
-		listings = append(listings, AlbumListing{
-			AlbumId:      cover.AlbumId,
-			Slug:         cover.Slug,
-			Name:         cover.Name,
-			Description:  cover.Description,
-			CoverImageId: cover.CoverImageId,
-			PublicURL:    cover.PublicURL,
-			LatestDate:   cover.LatestDate,
-			File:         FindSizedImage(cover.Files, minWidth),
-		})
+		sizedImage := FindSizedImage(cover.Files, minWidth)
+
+		if sizedImage != nil {
+			listings = append(listings, AlbumListing{
+				AlbumId:      cover.AlbumId,
+				Slug:         cover.Slug,
+				Name:         cover.Name,
+				Description:  cover.Description,
+				CoverImageId: cover.CoverImageId,
+				PublicURL:    cover.PublicURL,
+				LatestDate:   cover.LatestDate,
+				File:         *sizedImage,
+			})
+		}
 	}
 
 	return listings, nil
@@ -347,7 +355,10 @@ func (d *SqliteDatabase) ListAlbumImages(albumSlug string, minWidth int, limit i
 	sizedFiles := []File{}
 
 	for _, image := range images {
-		sizedFiles = append(sizedFiles, FindSizedImage(image.Files, minWidth))
+		sizedImage := FindSizedImage(image.Files, minWidth)
+		if sizedImage != nil {
+			sizedFiles = append(sizedFiles, *sizedImage)
+		}
 	}
 
 	return sizedFiles, nil
