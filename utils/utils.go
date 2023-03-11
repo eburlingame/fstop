@@ -56,10 +56,7 @@ func ComputeImageSrcSet(files []File) string {
 }
 
 func FindSizedImage(files []File, minWidth int) *File {
-	fmt.Printf("files: %?", files)
-
 	if len(files) == 0 {
-		fmt.Println("Empty files")
 		return nil
 	}
 
