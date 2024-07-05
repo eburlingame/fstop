@@ -89,12 +89,17 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	log.Printf("Populating image sizes, imageId: %s\n", imageRecord.ImageId)
 	err = populateImageSize(&imageRecord, file)
 	if err != nil {
+		log.Printf("Error populating image sizes: %s\n", err)
 		return err
 	}
 
 	// Write the image to the database
 	log.Printf("Inserting image into database, imageId: %s\n", imageRecord.ImageId)
-	r.Db.AddImage(&imageRecord)
+	err = r.Db.AddImage(&imageRecord)
+	if err != nil {
+		log.Printf("Error inserting image into database: %s\n", err)
+		return err
+	}
 
 	// Add the image to the correct album, if set
 	if image.AlbumId != "" {

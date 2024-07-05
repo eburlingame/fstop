@@ -148,6 +148,7 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 
 	err = r.Storage.PutFile(outputImage, storagePath, http.DetectContentType(file))
 	if err != nil {
+		log.Printf("Error uploading to S3: %s\n", err)
 		return err
 	}
 
@@ -164,6 +165,7 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 		Height:        uint64(height),
 	})
 	if err != nil {
+		log.Printf("Error inserting file into database: %s\n", err)
 		return err
 	}
 
