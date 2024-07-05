@@ -223,7 +223,6 @@ type AlbumListing struct {
 	Name         string
 	Description  string
 	CoverImageId string
-	PublicURL    string
 	LatestDate   string
 	File         File
 }
@@ -255,7 +254,6 @@ func (d *SqliteDatabase) ListAlbumsCovers(publishedOnly bool, minWidth int, limi
 				Name:         cover.Name,
 				Description:  cover.Description,
 				CoverImageId: cover.CoverImageId,
-				PublicURL:    cover.PublicURL,
 				LatestDate:   cover.LatestDate,
 				File:         *sizedImage,
 			})

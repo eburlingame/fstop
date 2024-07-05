@@ -164,7 +164,7 @@ func getImportStatuses(r *Resources, importBatchId string) (bool, []ImportStatus
 			var file File
 			r.Db.GetFile(&file, img.ImageId, 100)
 
-			statuses[i].URL = file.PublicURL
+			statuses[i].URL = PublicImageURL(r.Config.S3BaseUrl, file.StoragePath)
 		} else {
 			allProcessed = false
 		}

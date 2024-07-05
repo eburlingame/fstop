@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/models"
@@ -12,9 +13,33 @@ import (
 )
 
 func AlbumsListGetHandler(r *Resources) gin.HandlerFunc {
-	return func(c *gin.Context) {
+	type AlbumElement struct {
+		AlbumId      string
+		Slug         string
+		Name         string
+		Description  string
+		CoverImageId string
+		LatestDate   string
+		PublicURL    string
+	}
 
-		albums, _ := r.Db.ListAlbumsCovers(true, 400, 100, 0)
+	return func(c *gin.Context) {
+		albumListings, _ := r.Db.ListAlbumsCovers(true, 400, 100, 0)
+
+		albums := []AlbumElement{}
+
+		for i := range albumListings {
+			albums = append(albums, AlbumElement{
+				AlbumId:      albumListings[i].AlbumId,
+				Slug:         albumListings[i].Slug,
+				Name:         albumListings[i].Name,
+				Description:  albumListings[i].Description,
+				CoverImageId: albumListings[i].CoverImageId,
+				LatestDate:   albumListings[i].LatestDate,
+				PublicURL:    PublicImageURL(r.Config.S3BaseUrl, albumListings[i].File.StoragePath),
+			})
+
+		}
 
 		c.HTML(http.StatusOK, "albums.html", gin.H{
 			"albums": albums,
@@ -45,10 +70,17 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 		for _, img := range images {
 			metaDescription := fmt.Sprintf("%s, %s (%s' f/%.1f ISO %.0f)", img.CameraModel, img.Lens, img.ShutterSpeed, img.FNumber, img.ISO)
 
+			if len(img.Files) == 0 {
+				log.Printf("No files found for image %s\n", img.ImageId)
+				continue
+			}
+
+			smallImage := FindSizedImage(img.Files, 500)
+
 			imagesWithSrcSets = append(imagesWithSrcSets, ImageWithSrcSet{
 				ImageId:       img.ImageId,
-				SrcSet:        ComputeImageSrcSet((img.Files)),
-				SmallImageUrl: FindSizedImage(img.Files, 500).PublicURL,
+				SrcSet:        ComputeImageSrcSet(r.Config.S3BaseUrl, img.Files),
+				SmallImageUrl: PublicImageURL(r.Config.S3BaseUrl, smallImage.StoragePath),
 				Width:         img.WidthPixels,
 				Height:        img.HeightPixels,
 				Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),

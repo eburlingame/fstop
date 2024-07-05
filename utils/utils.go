@@ -45,11 +45,15 @@ func ResizeLongEdgeDimensions(width int, height int, longEdge int) (int, int) {
 	}
 }
 
-func ComputeImageSrcSet(files []File) string {
+func PublicImageURL(s3Url string, storagePath string) string {
+	return fmt.Sprintf("%s/%s", s3Url, storagePath)
+}
+
+func ComputeImageSrcSet(s3URL string, files []File) string {
 	srcs := []string{}
 
 	for _, file := range files {
-		srcs = append(srcs, fmt.Sprintf("%s %dw", file.PublicURL, file.Width))
+		srcs = append(srcs, fmt.Sprintf("%s %dw", PublicImageURL(s3URL, file.StoragePath), file.Width))
 	}
 
 	return strings.Join(srcs, ", ")

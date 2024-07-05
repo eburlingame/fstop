@@ -11,6 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type RenderedFile struct {
+	ImageId   string
+	PublicURL string
+}
+
 func AdminAlbumsGetHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var albums []Album
@@ -56,9 +61,17 @@ func EditAlbumPage(r *Resources, c *gin.Context) {
 	r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
 	files, _ := r.Db.ListAlbumImages(params.AlbumSlug, 400, 200, 0)
 
+	albumImages := []RenderedFile{}
+	for _, file := range files {
+		albumImages = append(albumImages, RenderedFile{
+			ImageId:   file.ImageId,
+			PublicURL: PublicImageURL(r.Config.S3BaseUrl, file.StoragePath),
+		})
+	}
+
 	c.HTML(http.StatusOK, "edit_album.html", gin.H{
 		"album": album,
-		"files": files,
+		"files": albumImages,
 	})
 }
 
@@ -82,10 +95,24 @@ func AdminAddPhotosGetHandler(r *Resources) gin.HandlerFunc {
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
 
 		files, err := r.Db.ListLatestFiles(400, 100, 0)
+		if err != nil {
+			log.Println("Error listing files: ", err)
+			c.Status(500)
+			return
+		}
+
+		renderedImages := []RenderedFile{}
+		for _, file := range files {
+			renderedImages = append(renderedImages, RenderedFile{
+				ImageId:   file.ImageId,
+				PublicURL: PublicImageURL(r.Config.S3BaseUrl, file.StoragePath),
+			})
+			log.Printf("Image: %s\n", PublicImageURL(r.Config.S3BaseUrl, file.StoragePath))
+		}
 
 		c.HTML(200, "add_to_album.html", gin.H{
-			"files": files,
 			"album": album,
+			"files": renderedImages,
 		})
 	}
 }
@@ -202,11 +229,11 @@ func AdminDeleteAlbumPostHandler(r *Resources) gin.HandlerFunc {
 		r.Db.GetAlbumBySlug(&album, params.AlbumSlug)
 
 		for _, file := range images {
-			println("Deleting image: ", file.ImageId)
+			log.Println("Deleting image: ", file.ImageId)
 			deleteAndRemoveImage(r, file.ImageId)
 		}
 
-		println(len(images), " images deleted from album")
+		log.Println(len(images), " images deleted from album")
 		r.Db.DeleteAlbum(album.AlbumId)
 
 		c.Redirect(http.StatusFound, "/admin/albums")
