@@ -23,6 +23,12 @@ type ImageImport struct {
 }
 
 func ProcessImageImport(r *Resources, image ImageImport) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic in ProcessImageImport", r)
+		}
+	}()
+
 	log.Printf("Processing image %s\n", image.UploadFilePath)
 
 	wg := new(sync.WaitGroup)
