@@ -34,7 +34,7 @@ func setupRouter() *gin.Engine {
 	}
 
 	gin.DisableConsoleColor()
-	f, _ := os.Create("fstop.log")
+	f, _ := os.OpenFile("fstop.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
 	log.SetOutput(gin.DefaultWriter)
 
