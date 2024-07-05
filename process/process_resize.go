@@ -146,10 +146,13 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 	storageFilename := getOriginalStorageFilename(r, image)
 	storagePath := getStoragePath(r, storageFilename)
 
-	r.Storage.PutFile(outputImage, storagePath, http.DetectContentType(file))
+	err = r.Storage.PutFile(outputImage, storagePath, http.DetectContentType(file))
+	if err != nil {
+		return err
+	}
 
 	// Insert a FileRecord
-	r.Db.AddFile(&File{
+	err = r.Db.AddFile(&File{
 		FileId:        Uuid(),
 		ImageId:       image.ImageId,
 		ImportBatchId: image.ImportBatchId,
@@ -160,6 +163,9 @@ func ProcessImageOriginal(r *Resources, wg *sync.WaitGroup, image *ImageImport, 
 		Width:         uint64(width),
 		Height:        uint64(height),
 	})
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

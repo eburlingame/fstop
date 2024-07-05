@@ -34,18 +34,22 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 	}
 
 	wg.Add(1)
+	log.Printf("Processing image metadata, imageId: %s\n", image.ImageId)
 	go ProcessImageMeta(r, wg, &image, fileContents)
 
 	wg.Add(1)
+	log.Printf("Processing image original, imageId: %s\n", image.ImageId)
 	go ProcessImageOriginal(r, wg, &image, fileContents)
 
 	wg.Add(len(image.Sizes))
+	log.Printf("Processing image resizes, imageId: %s\n", image.ImageId)
 	for _, size := range image.Sizes {
 		go ProcessImageResize(r, wg, &image, size, fileContents)
 	}
 
 	wg.Wait()
 
+	log.Printf("Updating processed status, imageId: %s\n", image.ImageId)
 	r.Db.UpdateImageProcessedStatus(image.ImageId, true)
 
 	log.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)

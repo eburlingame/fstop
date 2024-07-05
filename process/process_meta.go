@@ -55,7 +55,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	ensureTempDirExists()
 
 	extension := GetExtension(image.UploadFilePath)
-	tempPath := os.TempDir() + image.ImageId + extension
+	tempPath := os.TempDir() + "/" + image.ImageId + extension
 
 	// Write to temporary file
 	log.Printf("Writing temporary file %s\n", tempPath)
