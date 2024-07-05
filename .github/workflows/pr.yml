@@ -1,16 +1,16 @@
-name: Build and deploy
+name: PR Build
 
 on:
   pull_request:
-    types: [opened, edited, reopened, review_requested]
-    branches: [master]
+    branches:
+      - master
 
 env:
   BACKEND_IMAGE: ghcr.io/${{ github.repository }}/fstop:sha-${{ github.sha }}
   LATEST_BACKEND_IMAGE: ghcr.io/${{ github.repository }}/fstop:latest
 
 jobs:
-  backend-build:
+  pr-build:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
