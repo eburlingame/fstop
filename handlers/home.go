@@ -21,13 +21,13 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 		for _, img := range images {
 			metaDescription := fmt.Sprintf("%s, %s (%s' f/%.1f ISO %.0f)", img.CameraModel, img.Lens, img.ShutterSpeed, img.FNumber, img.ISO)
 
-			smallImageUrl := FindSizedImage(img.Files, 500)
+			smallImageFile := FindSizedImage(img.Files, 500)
 
-			if smallImageUrl != nil {
+			if smallImageFile != nil {
 				imagesWithSrcSets = append(imagesWithSrcSets, ImageWithSrcSet{
 					ImageId:       img.ImageId,
-					SrcSet:        ComputeImageSrcSet((img.Files)),
-					SmallImageUrl: smallImageUrl.PublicURL,
+					SrcSet:        ComputeImageSrcSet(r.Config.S3BaseUrl, (img.Files)),
+					SmallImageUrl: PublicImageURL(r.Config.S3BaseUrl, smallImageFile.StoragePath),
 					Width:         img.WidthPixels,
 					Height:        img.HeightPixels,
 					Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
@@ -62,13 +62,37 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 		var files []File
 		var image Image
 
+		type ImageFile struct {
+			ImageId    string
+			PublicURL  string
+			Width      uint64
+			Height     uint64
+			IsOriginal bool
+		}
+
 		r.Db.ListImageFiles(&files, params.ImageId)
 		r.Db.GetImage(&image, params.ImageId)
 
+		if len(files) == 0 {
+			c.Status(404)
+			return
+		}
+
+		renderedFiles := []ImageFile{}
+		for _, file := range files {
+			renderedFiles = append(renderedFiles, ImageFile{
+				ImageId:    file.ImageId,
+				Width:      file.Width,
+				Height:     file.Height,
+				IsOriginal: file.IsOriginal,
+				PublicURL:  PublicImageURL(r.Config.S3BaseUrl, file.StoragePath),
+			})
+		}
+
 		c.HTML(http.StatusOK, "image.html", gin.H{
-			"files":        files,
-			"smallestFile": files[0],
-			"srcSet":       ComputeImageSrcSet(files),
+			"files":        renderedFiles,
+			"smallestFile": renderedFiles[0],
+			"srcSet":       ComputeImageSrcSet(r.Config.S3BaseUrl, files),
 			"isAdmin":      isAdmin,
 			"date":         image.DateTimeOriginal.Format("Monday, January _2, 2006"),
 			"camera":       fmt.Sprintf("%s, %s", image.CameraModel, image.Lens),
