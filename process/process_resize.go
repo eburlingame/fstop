@@ -1,7 +1,7 @@
 package process
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"sync"
 
@@ -80,7 +80,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 	// Determine image dimensions
 	width, height, err := getImageSize(file)
 	if err != nil {
-		fmt.Printf("Something went wrong: %s\n", err)
+		log.Printf("Something went wrong: %s\n", err)
 		return err
 	}
 
@@ -91,7 +91,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 		outputImage, err = resizeImage(outputImage, newWidth, newHeight)
 
 		if err != nil {
-			fmt.Printf("Something went wrong: %s\n", err)
+			log.Printf("Something went wrong: %s\n", err)
 			return err
 		}
 
@@ -104,7 +104,7 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 		outputImage, err = convertImageFormat(outputImage, size.Format)
 
 		if err != nil {
-			fmt.Printf("Something went wrong: %s\n", err)
+			log.Printf("Something went wrong: %s\n", err)
 			return err
 		}
 	}

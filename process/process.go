@@ -1,7 +1,7 @@
 package process
 
 import (
-	"fmt"
+	"log"
 	"sync"
 
 	. "github.com/eburlingame/fstop/resources"
@@ -23,13 +23,13 @@ type ImageImport struct {
 }
 
 func ProcessImageImport(r *Resources, image ImageImport) {
-	fmt.Printf("Processing image %s\n", image.UploadFilePath)
+	log.Printf("Processing image %s\n", image.UploadFilePath)
 
 	wg := new(sync.WaitGroup)
 
 	fileContents, err := r.Storage.GetFile(image.UploadFilePath)
 	if err != nil || len(fileContents) == 0 {
-		fmt.Printf("Error getting image from storage: %s\n", err)
+		log.Printf("Error getting image from storage: %s\n", err)
 		return
 	}
 
@@ -48,6 +48,6 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 
 	r.Db.UpdateImageProcessedStatus(image.ImageId, true)
 
-	fmt.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
+	log.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
 	r.Storage.DeleteFile(image.UploadFilePath)
 }

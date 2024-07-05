@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/models"
@@ -179,7 +179,7 @@ func deleteAndRemoveImage(r *Resources, imageId string) {
 	for _, file := range files {
 		err := r.Storage.DeleteFile(file.StoragePath)
 		if err != nil {
-			fmt.Printf("Error deleting file: %s\n", err)
+			log.Printf("Error deleting file: %s\n", err)
 		}
 	}
 

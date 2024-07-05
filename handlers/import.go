@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -63,7 +64,7 @@ func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
 			albumId = album.AlbumId
 		} else if albumSelection == "new" {
 			if strings.Trim(newAlbumName, " ") == "" {
-				fmt.Printf("Name cannot be empty")
+				log.Printf("Name cannot be empty")
 				return "", fmt.Errorf("Name cannot be empty")
 			}
 

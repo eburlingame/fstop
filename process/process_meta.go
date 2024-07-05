@@ -1,7 +1,7 @@
 package process
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -17,7 +17,7 @@ import (
 func populateImageSize(image *Image, buffer []byte) error {
 	imgSize, err := bimg.Size(buffer)
 	if err != nil {
-		fmt.Printf("Unable to read image size %s\n", err)
+		log.Printf("Unable to read image size %s\n", err)
 		return err
 	}
 
@@ -30,7 +30,7 @@ func populateImageSize(image *Image, buffer []byte) error {
 func extractExif(localPath string) (map[string]string, error) {
 	et, err := exiftool.NewExiftool()
 	if err != nil {
-		fmt.Printf("Error when intializing: %v\n", err)
+		log.Printf("Error when intializing: %v\n", err)
 		return nil, err
 	}
 	defer et.Close()
@@ -58,17 +58,19 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	tempPath := os.TempDir() + image.ImageId + extension
 
 	// Write to temporary file
+	log.Printf("Writing temporary file %s\n", tempPath)
 	err := bimg.Write(tempPath, file)
 	if err != nil {
-		fmt.Printf("Error writing temporary file: %s\n", err)
+		log.Printf("Error writing temporary file: %s\n", err)
 		return err
 	}
 	defer os.Remove(tempPath)
 
 	// Extract image EXIF data
+	log.Printf("Extracting EXIF data %s\n", tempPath)
 	tags, err := extractExif(tempPath)
 	if err != nil {
-		fmt.Printf("Error extracting EXIF data: %s\n", err)
+		log.Printf("Error extracting EXIF data: %s\n", err)
 		return err
 	}
 
@@ -80,19 +82,23 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	}
 
 	// Populate database Image with exif tags
+	log.Printf("Populating image from exif, imageId: %s\n", imageRecord.ImageId)
 	PopulateImageFromExif(&imageRecord, tags)
 
 	// Populate image sizes
+	log.Printf("Populating image sizes, imageId: %s\n", imageRecord.ImageId)
 	err = populateImageSize(&imageRecord, file)
 	if err != nil {
 		return err
 	}
 
 	// Write the image to the database
+	log.Printf("Inserting image into database, imageId: %s\n", imageRecord.ImageId)
 	r.Db.AddImage(&imageRecord)
 
 	// Add the image to the correct album, if set
 	if image.AlbumId != "" {
+		log.Printf("Adding image to album %s\n", image.AlbumId)
 		r.Db.AddImageToAlbum(image.AlbumId, image.ImageId)
 	}
 

@@ -3,3 +3,4 @@ temp/
 .env.local
 *.db
 .vscode/
+fstop.log

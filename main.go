@@ -1,7 +1,9 @@
 package main
 
 import (
+	"io"
 	"log"
+	"os"
 
 	. "github.com/eburlingame/fstop/handlers"
 	. "github.com/eburlingame/fstop/middleware"
@@ -31,6 +33,12 @@ func setupRouter() *gin.Engine {
 		Db:      db,
 	}
 
+	gin.DisableConsoleColor()
+	f, _ := os.Create("fstop.log")
+	gin.DefaultWriter = io.MultiWriter(f, os.Stdout)
+	log.SetOutput(gin.DefaultWriter)
+
+	log.Println("Starting server")
 	router := gin.Default()
 
 	store := cookie.NewStore([]byte(config.Secret))

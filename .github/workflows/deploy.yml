@@ -59,10 +59,3 @@ jobs:
           docker pull $BACKEND_IMAGE
           docker tag $BACKEND_IMAGE $LATEST_BACKEND_IMAGE
           docker push $LATEST_BACKEND_IMAGE
-
-      - name: Trigger the deployment pipeline
-        run: |
-          curl --request POST \
-          --form "token=${{ secrets.DEPLOY_TRIGGER_TOKEN }}" \
-          -F "variables[ANSIBLE_PLAYBOOK]=fstop.deploy.yml" \
-          --form ref=master "${{ secrets.DEPLOY_TRIGGER_URL }}"

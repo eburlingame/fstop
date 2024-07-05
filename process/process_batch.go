@@ -1,7 +1,7 @@
 package process
 
 import (
-	"fmt"
+	"log"
 
 	. "github.com/eburlingame/fstop/resources"
 )
@@ -22,7 +22,7 @@ func imageWorker(id int, queue chan ImportTask) {
 	for tsk := range queue {
 		ProcessImageImport(tsk.Resources, tsk.Image)
 	}
-	fmt.Printf("Worker %d done\n", id)
+	log.Printf("Worker %d done\n", id)
 }
 
 func ImportImageBatch(r *Resources, batch ImportBatchRequest) {

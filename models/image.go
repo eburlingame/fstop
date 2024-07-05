@@ -1,7 +1,7 @@
 package models
 
 import (
-	"fmt"
+	"log"
 	"reflect"
 	"strconv"
 	"time"
@@ -110,7 +110,7 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 				if field.Type.Kind() == reflect.Float64 {
 					floatValue, err := strconv.ParseFloat(exifTagValue, 64)
 					if err != nil {
-						fmt.Printf("Unable to parse float %s\n", exifTagValue)
+						log.Printf("Unable to parse float %s\n", exifTagValue)
 						continue
 					}
 					value.SetFloat(floatValue)
@@ -118,7 +118,7 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 				if field.Type.Kind() == reflect.Int64 {
 					intValue, err := strconv.ParseInt(exifTagValue, 10, 64)
 					if err != nil {
-						fmt.Printf("Unable to parse int %s\n", exifTagValue)
+						log.Printf("Unable to parse int %s\n", exifTagValue)
 						continue
 					}
 					value.SetInt(intValue)
@@ -128,7 +128,7 @@ func PopulateImageFromExif(img *Image, exifMap map[string]string) {
 					timeValue, err := parseExifTimestamp(exifTagValue)
 
 					if err != nil {
-						fmt.Printf("Unable to parse date %s\n", exifTagValue)
+						log.Printf("Unable to parse date %s\n", exifTagValue)
 						continue
 					}
 

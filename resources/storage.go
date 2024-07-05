@@ -2,8 +2,8 @@ package resources
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"strings"
 	"time"
 
@@ -56,7 +56,7 @@ func (s *S3Storage) PutFile(contents []byte, destPath string, contentType string
 	})
 
 	if err != nil {
-		fmt.Printf("Error uploading file: %s", err)
+		log.Printf("Error uploading file: %s", err)
 	}
 
 	return err
