@@ -59,7 +59,7 @@
 
   {{ range . }}
   <div class="grid-item" style="aspect-ratio: {{ .Width }} / {{ .Height }};">
-    <a href="/image/{{ .ImageId }}" class="streamLink" title="Hi">
+    <a href="{{ .SmallImageUrl }}" class="streamLink" title="Hi">
       <img src="{{ .SmallImageUrl }}" />
     </a>
   </div>
