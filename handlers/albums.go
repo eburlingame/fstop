@@ -75,7 +75,7 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 				continue
 			}
 
-			smallImage := FindSizedImage(img.Files, 500)
+			smallImage := FindSizedImage(img.Files, 800)
 
 			imagesWithSrcSets = append(imagesWithSrcSets, ImageWithSrcSet{
 				ImageId:       img.ImageId,

@@ -9,6 +9,7 @@ import (
 
 type OutputImageSize struct {
 	LongEdge    int
+	Quality     int
 	Suffix      string
 	Extension   string
 	Format      string

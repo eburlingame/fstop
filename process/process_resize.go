@@ -54,24 +54,6 @@ func imageTypeNameToEnum(format string) bimg.ImageType {
 	return bimg.JPEG
 }
 
-func convertImageFormat(file []byte, imgTypeName string) ([]byte, error) {
-	newType := imageTypeNameToEnum(imgTypeName)
-
-	imgBuffer, err := bimg.NewImage(file).Process(bimg.Options{
-		Type:    newType,
-		Quality: DEFAULT_QUALITY,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return imgBuffer, nil
-}
-
-func getImageType(file []byte) string {
-	return bimg.DetermineImageTypeName(file)
-}
-
 func getResizedStorageFilename(r *Resources, image *ImageImport, size OutputImageSize) string {
 	return image.ImageId + size.Suffix + size.Extension
 }
@@ -100,26 +82,19 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 	originalLongEdge := GetLongestEdge(width, height)
 	// Resize to longest edge, if needed
 	if size.LongEdge < originalLongEdge {
-		newWidth, newHeight := ResizeLongEdgeDimensions(width, height, size.LongEdge)
-		outputImage, err = resizeImage(outputImage, newWidth, newHeight)
-
-		if err != nil {
-			log.Printf("Something went wrong: %s\n", err)
-			return err
-		}
-
-		width = newWidth
-		height = newHeight
+		width, height = ResizeLongEdgeDimensions(width, height, size.LongEdge)
 	}
 
-	// Convert image type, if needed
-	if getImageType(outputImage) != size.Format {
-		outputImage, err = convertImageFormat(outputImage, size.Format)
+	outputImage, err = bimg.NewImage(outputImage).Process(bimg.Options{
+		Type:    imageTypeNameToEnum(size.Format),
+		Quality: size.Quality,
+		Width:   width,
+		Height:  height,
+	})
 
-		if err != nil {
-			log.Printf("Something went wrong: %s\n", err)
-			return err
-		}
+	if err != nil {
+		log.Printf("Something went wrong: %s\n", err)
+		return err
 	}
 
 	// Upload to storage

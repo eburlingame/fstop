@@ -99,6 +99,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 			Sizes: []OutputImageSize{
 				{
 					LongEdge:    200,
+					Quality:     80,
 					Suffix:      "_thumb",
 					Format:      "webp",
 					Extension:   ".webp",
@@ -106,6 +107,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 				},
 				{
 					LongEdge:    600,
+					Quality:     80,
 					Suffix:      "_small",
 					Format:      "webp",
 					Extension:   ".webp",
@@ -113,6 +115,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 				},
 				{
 					LongEdge:    1080,
+					Quality:     80,
 					Suffix:      "_medium",
 					Format:      "webp",
 					Extension:   ".webp",
@@ -120,6 +123,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 				},
 				{
 					LongEdge:    1920,
+					Quality:     65,
 					Suffix:      "_large",
 					Format:      "webp",
 					Extension:   ".webp",
@@ -127,6 +131,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 				},
 				{
 					LongEdge:    2560,
+					Quality:     50,
 					Suffix:      "_xlarge",
 					Format:      "webp",
 					Extension:   ".webp",
@@ -134,6 +139,7 @@ func performImport(r *Resources, names []string, albumId string) string {
 				},
 				{
 					LongEdge:    10000,
+					Quality:     50,
 					Suffix:      "_original",
 					Format:      "webp",
 					Extension:   ".webp",
