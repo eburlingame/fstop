@@ -6,7 +6,7 @@ import (
 	. "github.com/eburlingame/fstop/resources"
 )
 
-const NUM_WORKERS = 1
+const NUM_WORKERS = 4
 
 type ImportBatchRequest struct {
 	ImportBatchId string

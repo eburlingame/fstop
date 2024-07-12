@@ -180,7 +180,7 @@ func (d *SqliteDatabase) AddFile(file *File) error {
 }
 
 func preloadFilesQuery(db *gorm.DB) *gorm.DB {
-	return db.Order("files.width ASC")
+	return db.Order("files.width ASC").Where("files.is_original = false")
 }
 
 func (d *SqliteDatabase) ListLatestFiles(minWidth int, limit int, offset int) ([]File, error) {

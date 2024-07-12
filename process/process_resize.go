@@ -12,6 +12,8 @@ import (
 	"github.com/h2non/bimg"
 )
 
+const DEFAULT_QUALITY = 65
+
 func getImageSize(file []byte) (int, int, error) {
 	sizes, err := bimg.Size(file)
 
@@ -23,7 +25,12 @@ func getImageSize(file []byte) (int, int, error) {
 }
 
 func resizeImage(file []byte, newWidth int, newHeight int) ([]byte, error) {
-	imgBuffer, err := bimg.NewImage(file).Resize(newWidth, newHeight)
+	imgBuffer, err := bimg.NewImage(file).Process(bimg.Options{
+		Width:   newWidth,
+		Height:  newHeight,
+		Quality: DEFAULT_QUALITY,
+	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -41,13 +48,19 @@ func imageTypeNameToEnum(format string) bimg.ImageType {
 	if format == "heic" {
 		return bimg.HEIF
 	}
+	if format == "webp" {
+		return bimg.WEBP
+	}
 	return bimg.JPEG
 }
 
 func convertImageFormat(file []byte, imgTypeName string) ([]byte, error) {
 	newType := imageTypeNameToEnum(imgTypeName)
 
-	imgBuffer, err := bimg.NewImage(file).Convert(newType)
+	imgBuffer, err := bimg.NewImage(file).Process(bimg.Options{
+		Type:    newType,
+		Quality: DEFAULT_QUALITY,
+	})
 	if err != nil {
 		return nil, err
 	}
