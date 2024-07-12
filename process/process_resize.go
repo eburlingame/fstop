@@ -12,7 +12,7 @@ import (
 	"github.com/h2non/bimg"
 )
 
-const DEFAULT_QUALITY = 65
+const DEFAULT_QUALITY = 75
 
 func getImageSize(file []byte) (int, int, error) {
 	sizes, err := bimg.Size(file)
