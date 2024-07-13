@@ -137,14 +137,14 @@ func performImport(r *Resources, names []string, albumId string) string {
 					Extension:   ".webp",
 					ContentType: "image/webp",
 				},
-				{
-					LongEdge:    10000,
-					Quality:     50,
-					Suffix:      "_original",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
+				// {
+				// 	LongEdge:    10000,
+				// 	Quality:     50,
+				// 	Suffix:      "_original",
+				// 	Format:      "webp",
+				// 	Extension:   ".webp",
+				// 	ContentType: "image/webp",
+				// },
 			},
 		})
 	}
