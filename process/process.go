@@ -25,13 +25,15 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 		return
 	}
 
-	wg.Add(1)
-	log.Printf("Processing image metadata, imageId: %s\n", image.ImageId)
-	go ProcessImageMeta(r, wg, &image, fileContents)
+	if image.InitialImport {
+		wg.Add(1)
+		log.Printf("Processing image metadata, imageId: %s\n", image.ImageId)
+		go ProcessImageMeta(r, wg, &image, fileContents)
 
-	wg.Add(1)
-	log.Printf("Processing image original, imageId: %s\n", image.ImageId)
-	go ProcessImageOriginal(r, wg, &image, fileContents)
+		wg.Add(1)
+		log.Printf("Processing image original, imageId: %s\n", image.ImageId)
+		go ProcessImageOriginal(r, wg, &image, fileContents)
+	}
 
 	wg.Add(len(image.Sizes))
 	log.Printf("Processing image resizes, imageId: %s\n", image.ImageId)

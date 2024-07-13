@@ -17,6 +17,7 @@ type OutputImageSize struct {
 }
 
 type ImageImport struct {
+	InitialImport  bool
 	ImageId        string
 	ImportBatchId  string
 	UploadFilePath string

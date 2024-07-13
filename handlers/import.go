@@ -85,67 +85,63 @@ func getFormAlbumId(r *Resources, c *gin.Context) (string, error) {
 	return albumId, nil
 }
 
+func getImportSizes() []OutputImageSize {
+	return []OutputImageSize{
+		{
+			LongEdge:    200,
+			Quality:     80,
+			Suffix:      "_thumb",
+			Format:      "webp",
+			Extension:   ".webp",
+			ContentType: "image/webp",
+		},
+		{
+			LongEdge:    600,
+			Quality:     80,
+			Suffix:      "_small",
+			Format:      "webp",
+			Extension:   ".webp",
+			ContentType: "image/webp",
+		},
+		{
+			LongEdge:    1080,
+			Quality:     80,
+			Suffix:      "_medium",
+			Format:      "webp",
+			Extension:   ".webp",
+			ContentType: "image/webp",
+		},
+		{
+			LongEdge:    1920,
+			Quality:     65,
+			Suffix:      "_large",
+			Format:      "webp",
+			Extension:   ".webp",
+			ContentType: "image/webp",
+		},
+		{
+			LongEdge:    2560,
+			Quality:     50,
+			Suffix:      "_xlarge",
+			Format:      "webp",
+			Extension:   ".webp",
+			ContentType: "image/webp",
+		},
+	}
+}
+
 func performImport(r *Resources, names []string, albumId string) string {
 	importBatchId := Uuid()
 	images := []ImageImport{}
 
 	for _, value := range names {
 		images = append(images, ImageImport{
+			InitialImport:  true,
 			ImageId:        Uuid(),
 			ImportBatchId:  importBatchId,
 			AlbumId:        albumId,
 			UploadFilePath: r.Config.S3UploadFolder + "/" + value,
-
-			Sizes: []OutputImageSize{
-				{
-					LongEdge:    200,
-					Quality:     80,
-					Suffix:      "_thumb",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
-				{
-					LongEdge:    600,
-					Quality:     80,
-					Suffix:      "_small",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
-				{
-					LongEdge:    1080,
-					Quality:     80,
-					Suffix:      "_medium",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
-				{
-					LongEdge:    1920,
-					Quality:     65,
-					Suffix:      "_large",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
-				{
-					LongEdge:    2560,
-					Quality:     50,
-					Suffix:      "_xlarge",
-					Format:      "webp",
-					Extension:   ".webp",
-					ContentType: "image/webp",
-				},
-				// {
-				// 	LongEdge:    10000,
-				// 	Quality:     50,
-				// 	Suffix:      "_original",
-				// 	Format:      "webp",
-				// 	Extension:   ".webp",
-				// 	ContentType: "image/webp",
-				// },
-			},
+			Sizes:          getImportSizes(),
 		})
 	}
 
@@ -305,6 +301,41 @@ func ImportStateApiGetHandler(r *Resources) gin.HandlerFunc {
 			"batchId":      params.BatchId,
 			"allProcessed": allProcessed,
 			"statuses":     statuses,
+		})
+	}
+}
+
+func BulkResizeApiPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		importBatchId := Uuid()
+		imports := []ImageImport{}
+
+		files := []File{}
+		err := r.Db.ListOriginalImageFiles(&files)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("Error listing images: %s", err),
+			})
+			return
+		}
+
+		for _, file := range files {
+			imports = append(imports, ImageImport{
+				InitialImport:  false,
+				ImageId:        file.ImageId,
+				ImportBatchId:  importBatchId,
+				AlbumId:        "",
+				UploadFilePath: file.StoragePath,
+				Sizes:          getImportSizes(),
+			})
+		}
+
+		for i := range imports {
+			r.Queue.AddTask(imports[i])
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"batchId": importBatchId,
 		})
 	}
 }

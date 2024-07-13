@@ -10,10 +10,10 @@ import (
 
 const NUM_WORKERS = 4
 
-func worker(resources *resources.Resources) {
+func worker(worker_num int, resources *resources.Resources) {
 	queue := resources.Queue
 
-	log.Println("Worker started")
+	log.Printf("Worker %d started", worker_num)
 	for {
 		taskId, task, err := queue.Receive()
 		if err != nil {
@@ -34,7 +34,7 @@ func worker(resources *resources.Resources) {
 }
 
 func InitWorkers(resources *resources.Resources) {
-	for w := 1; w <= NUM_WORKERS; w++ {
-		go worker(resources)
+	for w := 0; w < NUM_WORKERS; w++ {
+		go worker(w, resources)
 	}
 }
