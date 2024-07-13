@@ -6,3 +6,20 @@ type ImageImportTask struct {
 	Filename      string
 	IsProcessed   bool
 }
+
+type OutputImageSize struct {
+	LongEdge    int
+	Quality     int
+	Suffix      string
+	Extension   string
+	Format      string
+	ContentType string
+}
+
+type ImageImport struct {
+	ImageId        string
+	ImportBatchId  string
+	UploadFilePath string
+	AlbumId        string
+	Sizes          []OutputImageSize
+}

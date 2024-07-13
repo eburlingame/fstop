@@ -4,24 +4,9 @@ import (
 	"log"
 	"sync"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 )
-
-type OutputImageSize struct {
-	LongEdge    int
-	Quality     int
-	Suffix      string
-	Extension   string
-	Format      string
-	ContentType string
-}
-type ImageImport struct {
-	ImageId        string
-	ImportBatchId  string
-	UploadFilePath string
-	AlbumId        string
-	Sizes          []OutputImageSize
-}
 
 func ProcessImageImport(r *Resources, image ImageImport) {
 	defer func() {

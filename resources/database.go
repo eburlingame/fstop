@@ -46,7 +46,7 @@ type Database interface {
 }
 
 type SqliteDatabase struct {
-	db *gorm.DB
+	Db *gorm.DB
 }
 
 const AlbumWithImagesView string = `
@@ -127,34 +127,34 @@ func InitSqliteDatabase(config *Configuration) (*SqliteDatabase, error) {
 	db.Exec(AlbumCovers)
 
 	base := &SqliteDatabase{
-		db: db,
+		Db: db,
 	}
 
 	return base, nil
 }
 
 func (d *SqliteDatabase) GetImage(image *Image, fileId string) error {
-	d.db.First(&image, "image_id = ?", fileId)
+	d.Db.First(&image, "image_id = ?", fileId)
 	return nil
 }
 
 func (d *SqliteDatabase) AddImage(image *Image) error {
-	d.db.Create(image)
+	d.Db.Create(image)
 
 	return nil
 }
 
 func (d *SqliteDatabase) DeleteImage(imageId string) error {
-	d.db.Where("image_id = ?", imageId).Delete(&Image{})
-	d.db.Where("image_id = ?", imageId).Delete(&AlbumImage{})
-	d.db.Where("image_id = ?", imageId).Delete(&File{})
-	d.db.Where("image_id = ?", imageId).Delete(&ImageImportTask{})
+	d.Db.Where("image_id = ?", imageId).Delete(&Image{})
+	d.Db.Where("image_id = ?", imageId).Delete(&AlbumImage{})
+	d.Db.Where("image_id = ?", imageId).Delete(&File{})
+	d.Db.Where("image_id = ?", imageId).Delete(&ImageImportTask{})
 
 	return nil
 }
 
 func (d *SqliteDatabase) AddImageImport(importBatchId string, imageId string, filename string) error {
-	d.db.Create(&ImageImportTask{
+	d.Db.Create(&ImageImportTask{
 		ImageId:       imageId,
 		Filename:      filename,
 		ImportBatchId: importBatchId,
@@ -167,14 +167,14 @@ func (d *SqliteDatabase) AddImageImport(importBatchId string, imageId string, fi
 func (d *SqliteDatabase) UpdateImageProcessedStatus(imageId string, isProcessed bool) error {
 	var imageImport ImageImportTask
 
-	d.db.First(&imageImport, "image_id = ?", imageId)
-	d.db.Model(&imageImport).Update("IsProcessed", isProcessed)
+	d.Db.First(&imageImport, "image_id = ?", imageId)
+	d.Db.Model(&imageImport).Update("IsProcessed", isProcessed)
 
 	return nil
 }
 
 func (d *SqliteDatabase) AddFile(file *File) error {
-	d.db.Create(file)
+	d.Db.Create(file)
 
 	return nil
 }
@@ -186,7 +186,7 @@ func preloadFilesQuery(db *gorm.DB) *gorm.DB {
 func (d *SqliteDatabase) ListLatestFiles(minWidth int, limit int, offset int) ([]File, error) {
 	var images []Image
 
-	d.db.Preload("Files", preloadFilesQuery).
+	d.Db.Preload("Files", preloadFilesQuery).
 		Limit(limit).
 		Offset(offset).
 		Order("date_time_original desc").
@@ -208,7 +208,7 @@ func (d *SqliteDatabase) ListLatestFiles(minWidth int, limit int, offset int) ([
 func (d *SqliteDatabase) ListLatestImages(limit int, offset int) ([]Image, error) {
 	var images []Image
 
-	d.db.Preload("Files", preloadFilesQuery).
+	d.Db.Preload("Files", preloadFilesQuery).
 		Limit(limit).
 		Offset(offset).
 		Order("date_time_original desc").
@@ -235,7 +235,7 @@ func (d *SqliteDatabase) ListAlbumsCovers(publishedOnly bool, minWidth int, limi
 
 	var covers []AlbumCover
 
-	d.db.Preload("Files", preloadFilesQuery).
+	d.Db.Preload("Files", preloadFilesQuery).
 		Where("is_published >= ?", published).
 		Order("latest_date DESC").
 		Limit(limit).
@@ -264,7 +264,7 @@ func (d *SqliteDatabase) ListAlbumsCovers(publishedOnly bool, minWidth int, limi
 }
 
 func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error {
-	d.db.
+	d.Db.
 		Order("width asc").
 		Where("image_id = ? AND width > ?", fileId, minWidth).
 		First(file)
@@ -273,7 +273,7 @@ func (d *SqliteDatabase) GetFile(file *File, fileId string, minWidth int) error 
 }
 
 func (d *SqliteDatabase) ListImageFiles(files *[]File, imageId string) error {
-	d.db.
+	d.Db.
 		Order("width asc").
 		Where("image_id = ?", imageId).
 		Find(files)
@@ -282,24 +282,24 @@ func (d *SqliteDatabase) ListImageFiles(files *[]File, imageId string) error {
 }
 
 func (d *SqliteDatabase) GetImagesInImportBatch(images *[]ImageImportTask, batchId string) {
-	d.db.Where("import_batch_id = ?", batchId).Find(&images)
+	d.Db.Where("import_batch_id = ?", batchId).Find(&images)
 }
 
 func (d *SqliteDatabase) AddAlbum(album Album) error {
-	d.db.Create(&album)
+	d.Db.Create(&album)
 
 	return nil
 }
 
 func (d *SqliteDatabase) DeleteAlbum(albumId string) error {
-	d.db.Where("album_id = ?", albumId).Delete(&Album{})
-	d.db.Where("album_id = ?", albumId).Delete(&AlbumImage{})
+	d.Db.Where("album_id = ?", albumId).Delete(&Album{})
+	d.Db.Where("album_id = ?", albumId).Delete(&AlbumImage{})
 
 	return nil
 }
 
 func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error {
-	d.db.Model(&Album{}).
+	d.Db.Model(&Album{}).
 		Where("album_id = ?", albumId).
 		Updates(map[string]interface{}{
 			"slug":           updatedAlbum.Slug,
@@ -313,22 +313,22 @@ func (d *SqliteDatabase) UpdateAlbum(albumId string, updatedAlbum *Album) error 
 }
 
 func (d *SqliteDatabase) GetAlbum(album *Album, albumId string) error {
-	d.db.Find(&album, "album_id = ?", albumId)
+	d.Db.Find(&album, "album_id = ?", albumId)
 	return nil
 }
 
 func (d *SqliteDatabase) GetAlbumBySlug(album *Album, albumSlug string) error {
-	d.db.Find(&album, "slug = ?", albumSlug)
+	d.Db.Find(&album, "slug = ?", albumSlug)
 	return nil
 }
 
 func (d *SqliteDatabase) ListAlbums(album *[]Album) error {
-	d.db.Find(&album)
+	d.Db.Find(&album)
 	return nil
 }
 
 func (d *SqliteDatabase) AddImageToAlbum(albumId string, imageId string) error {
-	d.db.Create(&AlbumImage{
+	d.Db.Create(&AlbumImage{
 		AlbumId: albumId,
 		ImageId: imageId,
 	})
@@ -336,14 +336,14 @@ func (d *SqliteDatabase) AddImageToAlbum(albumId string, imageId string) error {
 }
 
 func (d *SqliteDatabase) RemoveImageFromAlbum(albumId string, imageId string) error {
-	d.db.Where("album_id = ? AND image_id = ?", albumId, imageId).Delete(&AlbumImage{})
+	d.Db.Where("album_id = ? AND image_id = ?", albumId, imageId).Delete(&AlbumImage{})
 	return nil
 }
 
 func (d *SqliteDatabase) ListAlbumImages(albumSlug string, minWidth int, limit int, offset int) ([]File, error) {
 	var images []AlbumWithImage
 
-	d.db.Preload("Files", preloadFilesQuery).
+	d.Db.Preload("Files", preloadFilesQuery).
 		Where("slug = ?", albumSlug).
 		Limit(limit).
 		Offset(offset).
@@ -365,7 +365,7 @@ func (d *SqliteDatabase) ListAlbumImages(albumSlug string, minWidth int, limit i
 func (d *SqliteDatabase) ListAlbumFiles(albumSlug string) ([]AlbumWithImage, error) {
 	var images []AlbumWithImage
 
-	d.db.Preload("Files", preloadFilesQuery).
+	d.Db.Preload("Files", preloadFilesQuery).
 		Where("slug = ?", albumSlug).
 		Order("date_time_original DESC").
 		Find(&images)

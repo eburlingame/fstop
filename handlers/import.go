@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	. "github.com/eburlingame/fstop/models"
-	. "github.com/eburlingame/fstop/process"
+	// . "github.com/eburlingame/fstop/process"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
 	"github.com/gosimple/slug"
@@ -153,12 +153,9 @@ func performImport(r *Resources, names []string, albumId string) string {
 		r.Db.AddImageImport(image.ImportBatchId, image.ImageId, filepath.Base(image.UploadFilePath))
 	}
 
-	batch := ImportBatchRequest{
-		ImportBatchId: importBatchId,
-		Images:        images,
+	for i := range images {
+		r.Queue.AddTask(images[i])
 	}
-
-	go ImportImageBatch(r, batch)
 
 	return importBatchId
 }
