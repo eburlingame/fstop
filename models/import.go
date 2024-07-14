@@ -17,10 +17,10 @@ type OutputImageSize struct {
 }
 
 type ImageImport struct {
-	InitialImport  bool
-	ImageId        string
-	ImportBatchId  string
-	UploadFilePath string
-	AlbumId        string
-	Sizes          []OutputImageSize
+	InitialImport   bool
+	ImageId         string
+	ImportBatchId   string
+	OriginalFileKey string
+	AlbumId         string
+	Sizes           []OutputImageSize
 }

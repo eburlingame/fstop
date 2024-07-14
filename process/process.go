@@ -15,11 +15,11 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 		}
 	}()
 
-	log.Printf("Processing image %s\n", image.UploadFilePath)
+	log.Printf("Processing image %s\n", image.OriginalFileKey)
 
 	wg := new(sync.WaitGroup)
 
-	fileContents, err := r.Storage.GetFile(image.UploadFilePath)
+	fileContents, err := r.Storage.GetFile(image.OriginalFileKey)
 	if err != nil || len(fileContents) == 0 {
 		log.Printf("Error getting image from storage: %s\n", err)
 		return
@@ -46,6 +46,10 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 	log.Printf("Updating processed status, imageId: %s\n", image.ImageId)
 	r.Db.UpdateImageProcessedStatus(image.ImageId, true)
 
-	log.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
-	r.Storage.DeleteFile(image.UploadFilePath)
+	if image.InitialImport {
+		log.Printf("Removing %s from upload directory.\n", image.OriginalFileKey)
+		r.Storage.DeleteFile(image.OriginalFileKey)
+	}
+
+	log.Printf("Import of %s complete.\n", image.OriginalFileKey)
 }

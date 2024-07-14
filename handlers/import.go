@@ -136,17 +136,17 @@ func performImport(r *Resources, names []string, albumId string) string {
 
 	for _, value := range names {
 		images = append(images, ImageImport{
-			InitialImport:  true,
-			ImageId:        Uuid(),
-			ImportBatchId:  importBatchId,
-			AlbumId:        albumId,
-			UploadFilePath: r.Config.S3UploadFolder + "/" + value,
-			Sizes:          getImportSizes(),
+			InitialImport:   true,
+			ImageId:         Uuid(),
+			ImportBatchId:   importBatchId,
+			AlbumId:         albumId,
+			OriginalFileKey: r.Config.S3UploadFolder + "/" + value,
+			Sizes:           getImportSizes(),
 		})
 	}
 
 	for _, image := range images {
-		r.Db.AddImageImport(image.ImportBatchId, image.ImageId, filepath.Base(image.UploadFilePath))
+		r.Db.AddImageImport(image.ImportBatchId, image.ImageId, filepath.Base(image.OriginalFileKey))
 	}
 
 	for i := range images {
@@ -321,12 +321,12 @@ func BulkResizeApiPostHandler(r *Resources) gin.HandlerFunc {
 
 		for _, file := range files {
 			imports = append(imports, ImageImport{
-				InitialImport:  false,
-				ImageId:        file.ImageId,
-				ImportBatchId:  importBatchId,
-				AlbumId:        "",
-				UploadFilePath: file.StoragePath,
-				Sizes:          getImportSizes(),
+				InitialImport:   false,
+				ImageId:         file.ImageId,
+				ImportBatchId:   importBatchId,
+				AlbumId:         "",
+				OriginalFileKey: file.StoragePath,
+				Sizes:           getImportSizes(),
 			})
 		}
 

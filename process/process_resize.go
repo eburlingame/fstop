@@ -59,7 +59,7 @@ func getResizedStorageFilename(r *Resources, image *ImageImport, size OutputImag
 }
 
 func getOriginalStorageFilename(r *Resources, image *ImageImport) string {
-	extension := GetExtension(image.UploadFilePath)
+	extension := GetExtension(image.OriginalFileKey)
 	return image.ImageId + extension
 }
 
