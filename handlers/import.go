@@ -304,6 +304,59 @@ func ImportStateApiGetHandler(r *Resources) gin.HandlerFunc {
 	}
 }
 
+func SingleResizeApiPostHandler(r *Resources) gin.HandlerFunc {
+	type ResizeRequest struct {
+		ImageIds []string `json:"imageIds"`
+	}
+
+	return func(c *gin.Context) {
+		var resizeRequest ResizeRequest
+
+		err := c.Bind(&resizeRequest)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Unrecognized payload: %s", err)})
+			return
+		}
+
+		log.Printf("Resizing %d images\n", len(resizeRequest.ImageIds))
+
+		importBatchId := Uuid()
+
+		allFiles := []File{}
+		err = r.Db.ListOriginalImageFiles(&allFiles)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("Error listing images: %s", err),
+			})
+			return
+		}
+
+		files := []File{}
+		for _, image := range allFiles {
+			for _, id := range resizeRequest.ImageIds {
+				if image.ImageId == id && image.IsOriginal {
+					files = append(files, image)
+				}
+			}
+		}
+
+		for _, file := range files {
+			r.Queue.AddTask(ImageImport{
+				InitialImport:   false,
+				ImageId:         file.ImageId,
+				ImportBatchId:   importBatchId,
+				AlbumId:         "",
+				OriginalFileKey: file.StoragePath,
+				Sizes:           getImportSizes(),
+			})
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"batchId": importBatchId,
+		})
+	}
+}
+
 func BulkResizeApiPostHandler(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		importBatchId := Uuid()

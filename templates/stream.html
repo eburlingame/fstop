@@ -60,7 +60,7 @@
   {{ range . }}
   <div class="grid-item" style="aspect-ratio: {{ .Width }} / {{ .Height }};">
     <a href="{{ .SmallImageUrl }}" class="streamLink" title="Hi">
-      <img src="{{ .SmallImageUrl }}" loading="lazy" />
+      <img src="{{ .SmallImageUrl }}" />
     </a>
   </div>
   {{ end }}

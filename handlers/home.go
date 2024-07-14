@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	. "github.com/eburlingame/fstop/middleware"
 	. "github.com/eburlingame/fstop/models"
@@ -80,13 +81,15 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 
 		renderedFiles := []ImageFile{}
 		for _, file := range files {
-			renderedFiles = append(renderedFiles, ImageFile{
-				ImageId:    file.ImageId,
-				Width:      file.Width,
-				Height:     file.Height,
-				IsOriginal: file.IsOriginal,
-				PublicURL:  PublicImageURL(r.Config.S3BaseUrl, file.StoragePath),
-			})
+			if strings.HasSuffix(file.StoragePath, ".webp") {
+				renderedFiles = append(renderedFiles, ImageFile{
+					ImageId:    file.ImageId,
+					Width:      file.Width,
+					Height:     file.Height,
+					IsOriginal: file.IsOriginal,
+					PublicURL:  PublicImageURL(r.Config.S3BaseUrl, file.StoragePath),
+				})
+			}
 		}
 
 		c.HTML(http.StatusOK, "image.html", gin.H{
