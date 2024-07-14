@@ -81,7 +81,7 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 
 		renderedFiles := []ImageFile{}
 		for _, file := range files {
-			if strings.HasSuffix(file.StoragePath, ".webp") {
+			if strings.HasSuffix(file.StoragePath, ".webp") || file.IsOriginal {
 				renderedFiles = append(renderedFiles, ImageFile{
 					ImageId:    file.ImageId,
 					Width:      file.Width,
