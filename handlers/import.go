@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	. "github.com/eburlingame/fstop/models"
-	// . "github.com/eburlingame/fstop/process"
 	. "github.com/eburlingame/fstop/resources"
 	. "github.com/eburlingame/fstop/utils"
 	"github.com/gosimple/slug"
