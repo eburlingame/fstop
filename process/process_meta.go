@@ -54,7 +54,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 
 	ensureTempDirExists()
 
-	extension := GetExtension(image.UploadFilePath)
+	extension := GetExtension(image.OriginalFileKey)
 	tempPath := os.TempDir() + "/" + image.ImageId + extension
 
 	// Write to temporary file
@@ -78,7 +78,7 @@ func ProcessImageMeta(r *Resources, wg *sync.WaitGroup, image *ImageImport, file
 	imageRecord := Image{
 		ImageId:          image.ImageId,
 		ImportBatchId:    image.ImportBatchId,
-		OriginalFilename: filepath.Base(image.UploadFilePath),
+		OriginalFilename: filepath.Base(image.OriginalFileKey),
 	}
 
 	// Populate database Image with exif tags

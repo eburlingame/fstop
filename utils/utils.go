@@ -53,7 +53,9 @@ func ComputeImageSrcSet(s3URL string, files []File) string {
 	srcs := []string{}
 
 	for _, file := range files {
-		srcs = append(srcs, fmt.Sprintf("%s %dw", PublicImageURL(s3URL, file.StoragePath), file.Width))
+		if strings.HasSuffix(file.StoragePath, ".webp") && !file.IsOriginal {
+			srcs = append(srcs, fmt.Sprintf("%s %dw", PublicImageURL(s3URL, file.StoragePath), file.Width))
+		}
 	}
 
 	return strings.Join(srcs, ", ")
@@ -65,7 +67,7 @@ func FindSizedImage(files []File, minWidth int) *File {
 	}
 
 	for _, file := range files {
-		if file.Width > uint64(minWidth) {
+		if file.Width > uint64(minWidth) && strings.HasSuffix(file.StoragePath, ".webp") {
 			return &file
 		}
 	}

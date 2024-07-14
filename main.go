@@ -7,6 +7,8 @@ import (
 
 	. "github.com/eburlingame/fstop/handlers"
 	. "github.com/eburlingame/fstop/middleware"
+
+	. "github.com/eburlingame/fstop/process"
 	. "github.com/eburlingame/fstop/resources"
 
 	"github.com/gin-contrib/sessions"
@@ -27,11 +29,19 @@ func setupRouter() *gin.Engine {
 		log.Fatal(err)
 	}
 
+	queue, err := InitQueue(db.Db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := &Resources{
 		Config:  config,
 		Storage: storage,
 		Db:      db,
+		Queue:   &queue,
 	}
+
+	go InitWorkers(r)
 
 	gin.DisableConsoleColor()
 	f, _ := os.OpenFile("fstop.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -84,6 +94,8 @@ func setupRouter() *gin.Engine {
 	router.GET("/admin/import/status/:batchId", EnsureLoggedIn(r), AdminImportStatusGetHandler(r))
 
 	router.POST("/api/v1/admin/import", EnsureApiKeyPresent(r), ImportApiPostHandler(r))
+	router.POST("/api/v1/admin/resize/single", EnsureApiKeyPresent(r), SingleResizeApiPostHandler(r))
+	router.POST("/api/v1/admin/resize", EnsureApiKeyPresent(r), BulkResizeApiPostHandler(r))
 	router.GET("/api/v1/admin/import/:batchId", EnsureApiKeyPresent(r), ImportStateApiGetHandler(r))
 
 	return router

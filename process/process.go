@@ -4,24 +4,9 @@ import (
 	"log"
 	"sync"
 
+	. "github.com/eburlingame/fstop/models"
 	. "github.com/eburlingame/fstop/resources"
 )
-
-type OutputImageSize struct {
-	LongEdge    int
-	Quality     int
-	Suffix      string
-	Extension   string
-	Format      string
-	ContentType string
-}
-type ImageImport struct {
-	ImageId        string
-	ImportBatchId  string
-	UploadFilePath string
-	AlbumId        string
-	Sizes          []OutputImageSize
-}
 
 func ProcessImageImport(r *Resources, image ImageImport) {
 	defer func() {
@@ -30,23 +15,25 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 		}
 	}()
 
-	log.Printf("Processing image %s\n", image.UploadFilePath)
+	log.Printf("Processing image %s\n", image.OriginalFileKey)
 
 	wg := new(sync.WaitGroup)
 
-	fileContents, err := r.Storage.GetFile(image.UploadFilePath)
+	fileContents, err := r.Storage.GetFile(image.OriginalFileKey)
 	if err != nil || len(fileContents) == 0 {
 		log.Printf("Error getting image from storage: %s\n", err)
 		return
 	}
 
-	wg.Add(1)
-	log.Printf("Processing image metadata, imageId: %s\n", image.ImageId)
-	go ProcessImageMeta(r, wg, &image, fileContents)
+	if image.InitialImport {
+		wg.Add(1)
+		log.Printf("Processing image metadata, imageId: %s\n", image.ImageId)
+		go ProcessImageMeta(r, wg, &image, fileContents)
 
-	wg.Add(1)
-	log.Printf("Processing image original, imageId: %s\n", image.ImageId)
-	go ProcessImageOriginal(r, wg, &image, fileContents)
+		wg.Add(1)
+		log.Printf("Processing image original, imageId: %s\n", image.ImageId)
+		go ProcessImageOriginal(r, wg, &image, fileContents)
+	}
 
 	wg.Add(len(image.Sizes))
 	log.Printf("Processing image resizes, imageId: %s\n", image.ImageId)
@@ -59,6 +46,10 @@ func ProcessImageImport(r *Resources, image ImageImport) {
 	log.Printf("Updating processed status, imageId: %s\n", image.ImageId)
 	r.Db.UpdateImageProcessedStatus(image.ImageId, true)
 
-	log.Printf("Import of %s complete. Removing from upload directory.\n", image.UploadFilePath)
-	r.Storage.DeleteFile(image.UploadFilePath)
+	if image.InitialImport {
+		log.Printf("Removing %s from upload directory.\n", image.OriginalFileKey)
+		r.Storage.DeleteFile(image.OriginalFileKey)
+	}
+
+	log.Printf("Import of %s complete.\n", image.OriginalFileKey)
 }

@@ -1,5 +1,5 @@
 # Compile stage
-FROM golang:1.16.3-alpine3.13 AS build-env
+FROM golang:1.20-alpine3.19 AS build-env
 
 RUN apk add --update --no-cache --virtual .tmp-build-deps \
     gcc libc-dev linux-headers musl-dev zlib zlib-dev \
@@ -22,7 +22,7 @@ RUN ls
 RUN go build -o /server .
 
 # Serve stage
-FROM alpine:3.13
+FROM alpine:3.19
 
 RUN apk add --update --no-cache --virtual .tmp-build-deps \
     gcc libc-dev linux-headers musl-dev zlib zlib-dev \

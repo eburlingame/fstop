@@ -16,12 +16,20 @@ const DEFAULT_QUALITY = 75
 
 func getImageSize(file []byte) (int, int, error) {
 	sizes, err := bimg.Size(file)
-
 	if err != nil {
 		return 0, 0, err
 	}
 
-	return sizes.Width, sizes.Height, nil
+	meta, err := bimg.Metadata(file)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	if meta.Orientation == 6 || meta.Orientation == 8 {
+		return sizes.Height, sizes.Width, nil
+	} else {
+		return sizes.Width, sizes.Height, nil
+	}
 }
 
 func resizeImage(file []byte, newWidth int, newHeight int) ([]byte, error) {
@@ -59,7 +67,7 @@ func getResizedStorageFilename(r *Resources, image *ImageImport, size OutputImag
 }
 
 func getOriginalStorageFilename(r *Resources, image *ImageImport) string {
-	extension := GetExtension(image.UploadFilePath)
+	extension := GetExtension(image.OriginalFileKey)
 	return image.ImageId + extension
 }
 
@@ -79,11 +87,15 @@ func ProcessImageResize(r *Resources, wg *sync.WaitGroup, image *ImageImport, si
 		return err
 	}
 
+	log.Printf("Image size %s to %d x %d\n", image.ImageId, width, height)
+
 	originalLongEdge := GetLongestEdge(width, height)
 	// Resize to longest edge, if needed
 	if size.LongEdge < originalLongEdge {
 		width, height = ResizeLongEdgeDimensions(width, height, size.LongEdge)
 	}
+
+	log.Printf("Resizing %s to %d x %d\n", image.ImageId, width, height)
 
 	outputImage, err = bimg.NewImage(outputImage).Process(bimg.Options{
 		Type:    imageTypeNameToEnum(size.Format),
