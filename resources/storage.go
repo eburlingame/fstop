@@ -18,6 +18,7 @@ type Storage interface {
 	ListFiles(prefix string) ([]string, error)
 	GetFile(key string) ([]byte, error)
 	DeleteFile(key string) error
+	MoveFile(key string, newKey string) error
 }
 
 type S3Storage struct {
@@ -78,16 +79,25 @@ func (s *S3Storage) GetSignedUploadUrl(destPath string, contentType string) (str
 func (s *S3Storage) ListFiles(prefix string) ([]string, error) {
 	svc := s3.New(s.session)
 
-	list, err := svc.ListObjects(&s3.ListObjectsInput{
+	objects := []*s3.Object{}
+
+	pageNum := 0
+	err := svc.ListObjectsV2Pages(&s3.ListObjectsV2Input{
 		Bucket: aws.String(s.bucketName),
 		Prefix: aws.String(prefix),
-	})
+	},
+		func(page *s3.ListObjectsV2Output, lastPage bool) bool {
+			pageNum++
+			objects = append(objects, page.Contents...)
+			return pageNum <= 100
+		})
+
 	if err != nil {
 		return nil, err
 	}
 
 	names := []string{}
-	for _, object := range list.Contents {
+	for _, object := range objects {
 		// Filter out directories
 		if !strings.HasSuffix(*object.Key, "/") {
 			names = append(names, *object.Key)
@@ -118,6 +128,32 @@ func (s *S3Storage) DeleteFile(key string) error {
 		Bucket: aws.String(s.bucketName),
 		Key:    aws.String(key),
 	})
+
+	return err
+}
+
+func (s *S3Storage) MoveFile(key string, newKey string) error {
+	svc := s3.New(s.session)
+
+	// Copy the object
+	log.Printf("Copying %s to %s\n", key, newKey)
+	_, err := svc.CopyObject(&s3.CopyObjectInput{
+		CopySource: aws.String(s.bucketName + "/" + key),
+		Bucket:     aws.String(s.bucketName),
+		Key:        aws.String(newKey),
+	})
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Deleting %s\n", key)
+	_, err = svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(s.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return err
+	}
 
 	return err
 }
