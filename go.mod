@@ -16,7 +16,7 @@ require (
 	github.com/maragudk/goqite v0.2.3
 	github.com/rogpeppe/go-internal v1.8.0 // indirect
 	github.com/ugorji/go v1.2.6 // indirect
-	golang.org/x/crypto v0.9.0
+	golang.org/x/crypto v0.17.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/sqlite v1.2.6
