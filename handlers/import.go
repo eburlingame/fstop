@@ -391,3 +391,47 @@ func BulkResizeApiPostHandler(r *Resources) gin.HandlerFunc {
 		})
 	}
 }
+
+// PurgeOrphanImagesApiPostHandler deletes images in S3 that are not referenced in the database
+func PurgeOrphanImagesApiPostHandler(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		all_files := []File{}
+		err := r.Db.ListFiles(&all_files)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": fmt.Sprintf("Error listing images: %s", err),
+			})
+			return
+		}
+
+		fileKeys := map[string]bool{}
+		for _, file := range all_files {
+			fileKeys[file.StoragePath] = true
+		}
+
+		storage_files, err := r.Storage.ListFiles(r.Config.S3MediaFolder)
+		if err != nil {
+			log.Printf("Error listing files: %s\n", err)
+			return
+		}
+
+		orphan_keys := []string{}
+		for _, stored_file := range storage_files {
+			if !fileKeys[stored_file] {
+				log.Printf("Purging orphaned file: %s\n", stored_file)
+				orphan_keys = append(orphan_keys, stored_file)
+
+				err := r.Storage.DeleteFile(stored_file)
+				if err != nil {
+					log.Printf("Error deleting file: %s\n", err)
+				}
+			}
+		}
+
+		log.Printf("Purged %d orphaned files\n", len(orphan_keys))
+
+		c.JSON(http.StatusOK, gin.H{
+			"purges": orphan_keys,
+		})
+	}
+}

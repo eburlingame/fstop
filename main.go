@@ -96,6 +96,7 @@ func setupRouter() *gin.Engine {
 	router.POST("/api/v1/admin/import", EnsureApiKeyPresent(r), ImportApiPostHandler(r))
 	router.POST("/api/v1/admin/resize/single", EnsureApiKeyPresent(r), SingleResizeApiPostHandler(r))
 	router.POST("/api/v1/admin/resize", EnsureApiKeyPresent(r), BulkResizeApiPostHandler(r))
+	router.POST("/api/v1/admin/purge", EnsureApiKeyPresent(r), PurgeOrphanImagesApiPostHandler(r))
 	router.GET("/api/v1/admin/import/:batchId", EnsureApiKeyPresent(r), ImportStateApiGetHandler(r))
 
 	return router
