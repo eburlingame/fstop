@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"crypto/subtle"
-	"fmt"
 	"net/http"
 
 	. "github.com/eburlingame/fstop/middleware"
@@ -61,7 +60,6 @@ func ViewerLoginPostHandler(r *Resources) gin.HandlerFunc {
 		}
 
 		redirect := c.DefaultQuery("redirect", "/")
-		fmt.Printf("Redirect: %s", redirect)
 
 		if comparePasswords(r.Config.ViewerPasswordHash, formData.Password) {
 			session.Set(VIEWER_SESSION_USERNAME_KEY, VIEWER_USERNAME)
