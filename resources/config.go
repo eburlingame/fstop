@@ -14,8 +14,9 @@ type Configuration struct {
 
 	SQLiteFilepath string
 
-	AdminUsername     string
-	AdminPasswordHash []byte
+	AdminUsername      string
+	AdminPasswordHash  []byte
+	ViewerPasswordHash []byte
 
 	S3BucketName   string
 	S3BucketRegion string
@@ -29,9 +30,16 @@ func GetConfig() *Configuration {
 		log.Print(err)
 	}
 
-	password := os.Getenv("ADMIN_PASSWORD")
-	password_bytes := []byte(password)
-	hashedPassword, err := bcrypt.GenerateFromPassword(password_bytes, bcrypt.DefaultCost)
+	adminPassword := os.Getenv("ADMIN_PASSWORD")
+	adminPasswordBytes := []byte(adminPassword)
+	adminHashedPassword, err := bcrypt.GenerateFromPassword(adminPasswordBytes, bcrypt.DefaultCost)
+	if err != nil {
+		panic(err)
+	}
+
+	viewerPassword := os.Getenv("VIEWER_PASSWORD")
+	viewerPasswordBytes := []byte(viewerPassword)
+	viewerHashedPassword, err := bcrypt.GenerateFromPassword(viewerPasswordBytes, bcrypt.DefaultCost)
 	if err != nil {
 		panic(err)
 	}
@@ -41,8 +49,9 @@ func GetConfig() *Configuration {
 		ApiKey:         os.Getenv("API_KEY"),
 		SQLiteFilepath: os.Getenv("SQLITE_FILE"),
 
-		AdminUsername:     os.Getenv("ADMIN_USERNAME"),
-		AdminPasswordHash: hashedPassword,
+		AdminUsername:      os.Getenv("ADMIN_USERNAME"),
+		AdminPasswordHash:  adminHashedPassword,
+		ViewerPasswordHash: viewerHashedPassword,
 
 		S3BucketName:   os.Getenv("S3_BUCKET_NAME"),
 		S3BucketRegion: os.Getenv("S3_BUCKET_REGION"),

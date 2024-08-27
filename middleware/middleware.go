@@ -10,11 +10,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const SESSION_USERNAME_KEY = "authed_user"
+const ADMIN_SESSION_USERNAME_KEY = "authed_admin_user"
+const VIEWER_SESSION_USERNAME_KEY = "authed_viewer_user"
+const VIEWER_USERNAME = "viewer"
 
-func IsLoggedIn(r *Resources, c *gin.Context) bool {
+func IsViewerLoggedIn(r *Resources, c *gin.Context) bool {
 	session := sessions.Default(c)
-	username := session.Get(SESSION_USERNAME_KEY)
+	username := session.Get(VIEWER_SESSION_USERNAME_KEY)
+
+	return username == VIEWER_USERNAME
+}
+
+func IsAdminLoggedIn(r *Resources, c *gin.Context) bool {
+	session := sessions.Default(c)
+	username := session.Get(ADMIN_SESSION_USERNAME_KEY)
 
 	return username == r.Config.AdminUsername
 }
@@ -23,11 +32,28 @@ func EnsureLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 
-		if !IsLoggedIn(r, c) {
+		if !IsViewerLoggedIn(r, c) && !IsAdminLoggedIn(r, c) {
 			session.Clear()
 			session.Save()
 
 			c.Redirect(http.StatusFound, "/login")
+			c.Abort()
+			return
+		}
+
+		c.Set("isAdmin", false)
+	}
+}
+
+func EnsureAdminLoggedIn(r *Resources) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+
+		if !IsAdminLoggedIn(r, c) {
+			session.Clear()
+			session.Save()
+
+			c.Redirect(http.StatusFound, "/admin/login")
 			c.Abort()
 			return
 		}
@@ -38,7 +64,7 @@ func EnsureLoggedIn(r *Resources) gin.HandlerFunc {
 
 func EnsureNotLoggedIn(r *Resources) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if IsLoggedIn(r, c) {
+		if IsAdminLoggedIn(r, c) || IsViewerLoggedIn(r, c) {
 			c.Redirect(http.StatusFound, "/admin")
 			c.Abort()
 			return

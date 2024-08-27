@@ -1,7 +1,7 @@
 {{ template "header.html" "Login" }}
 
-<form action="/login" method="post" class="loginForm">
-  <h3>Sign in</h3>
+<form action="/admin/login" method="post" class="loginForm">
+  <h3>Admin sign in</h3>
 
   {{ if .error }}
   <div class="error neighbored-bottom">
@@ -9,6 +9,9 @@
   </div> 
   {{ end }}
   
+  <label for="username">Username</label>
+  <input type="text" name="username" autofocus />
+
   <label for="password">Password</label>
   <input type="password" name="password" />
 

@@ -54,8 +54,26 @@ a:hover {
   color: #444;
 }
 
-.footer > a:hover {
+.footer a:hover {
   color: #666;
+}
+
+.footer .link-button {
+  margin-left: 2em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #444;
+  transition: color 0.1s ease-in-out;
+  text-decoration: none;
+  font-size: 1em;
+}
+.footer .link-button:hover {
+  color: #666;
+  transition: color 0.1s ease-in-out;
+}
+.footer .link-button:focus {
+  outline: none;
 }
 
 .button {
