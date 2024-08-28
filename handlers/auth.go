@@ -61,12 +61,14 @@ func ViewerLoginPostHandler(r *Resources) gin.HandlerFunc {
 
 		redirect := c.DefaultQuery("redirect", "/")
 
-		if comparePasswords(r.Config.ViewerPasswordHash, formData.Password) {
-			session.Set(VIEWER_SESSION_USERNAME_KEY, VIEWER_USERNAME)
-			session.Save()
+		for _, passwordHash := range r.Config.ViewerPasswordHashes {
+			if comparePasswords(passwordHash, formData.Password) {
+				session.Set(VIEWER_SESSION_USERNAME_KEY, VIEWER_USERNAME)
+				session.Save()
 
-			c.Redirect(http.StatusFound, redirect)
-			return
+				c.Redirect(http.StatusFound, redirect)
+				return
+			}
 		}
 
 		c.HTML(http.StatusForbidden, "login.html", gin.H{

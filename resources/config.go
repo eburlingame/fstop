@@ -3,6 +3,7 @@ package resources
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -14,9 +15,9 @@ type Configuration struct {
 
 	SQLiteFilepath string
 
-	AdminUsername      string
-	AdminPasswordHash  []byte
-	ViewerPasswordHash []byte
+	AdminUsername        string
+	AdminPasswordHash    []byte
+	ViewerPasswordHashes [][]byte
 
 	S3BucketName   string
 	S3BucketRegion string
@@ -37,11 +38,17 @@ func GetConfig() *Configuration {
 		panic(err)
 	}
 
-	viewerPassword := os.Getenv("VIEWER_PASSWORD")
-	viewerPasswordBytes := []byte(viewerPassword)
-	viewerHashedPassword, err := bcrypt.GenerateFromPassword(viewerPasswordBytes, bcrypt.DefaultCost)
-	if err != nil {
-		panic(err)
+	viewerPasswords := strings.Split(os.Getenv("VIEWER_PASSWORDS"), ",")
+	viewPasswordBytes := [][]byte{}
+
+	for _, password := range viewerPasswords {
+		viewerPasswordBytes := []byte(password)
+		viewerHashedPassword, err := bcrypt.GenerateFromPassword(viewerPasswordBytes, bcrypt.DefaultCost)
+		if err != nil {
+			panic(err)
+		}
+
+		viewPasswordBytes = append(viewPasswordBytes, viewerHashedPassword)
 	}
 
 	return &Configuration{
@@ -49,9 +56,9 @@ func GetConfig() *Configuration {
 		ApiKey:         os.Getenv("API_KEY"),
 		SQLiteFilepath: os.Getenv("SQLITE_FILE"),
 
-		AdminUsername:      os.Getenv("ADMIN_USERNAME"),
-		AdminPasswordHash:  adminHashedPassword,
-		ViewerPasswordHash: viewerHashedPassword,
+		AdminUsername:        os.Getenv("ADMIN_USERNAME"),
+		AdminPasswordHash:    adminHashedPassword,
+		ViewerPasswordHashes: viewPasswordBytes,
 
 		S3BucketName:   os.Getenv("S3_BUCKET_NAME"),
 		S3BucketRegion: os.Getenv("S3_BUCKET_REGION"),
