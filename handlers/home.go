@@ -50,7 +50,7 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 	}
 
 	return func(c *gin.Context) {
-		isAdmin := IsLoggedIn(r, c)
+		isAdmin := IsAdminLoggedIn(r, c)
 
 		var params UriParams
 
