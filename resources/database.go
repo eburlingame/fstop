@@ -75,7 +75,7 @@ const AlbumCovers string = `
 				THEN a.cover_image_id 
 				ELSE (SELECT ai.image_id 
 						FROM album_with_images ai 
-						WHERE ai.album_id = a.album_id 
+						WHERE ai.album_id = a.album_id
 						ORDER BY date_time_original DESC
 						LIMIT 1)
 			END) AS cover_image_id,

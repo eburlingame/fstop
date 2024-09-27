@@ -27,5 +27,6 @@ type AlbumWithImage struct {
 	ShutterSpeed     string
 	FNumber          float64
 	ISO              float64
+	FocalLength      string
 	Files            []File `gorm:"foreignKey:ImageId;references:ImageId"`
 }

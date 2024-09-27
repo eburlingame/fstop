@@ -75,3 +75,38 @@ func FindSizedImage(files []File, minWidth int) *File {
 	largestFile := files[len(files)-1]
 	return &largestFile
 }
+
+func GetMetaDescription(shutterSpeed string, fNumber float64, iso float64) string {
+	return fmt.Sprintf("%s' f/%.1f ISO %.0f", shutterSpeed, fNumber, iso)
+}
+
+func GetCameraDescription(cameraModel string, lens string, focalLength string) string {
+	if lens == "" {
+		return cameraModel
+	}
+	return fmt.Sprintf("%s, %s @ %s", cameraModel, lens, focalLength)
+}
+
+func GetImageMetaDescription(img *Image) string {
+	return GetMetaDescription(img.ShutterSpeed, img.FNumber, img.ISO)
+}
+
+func GetImageCameraDescription(img *Image) string {
+	return GetCameraDescription(img.CameraModel, img.Lens, img.FocalLength)
+}
+
+func GetImageCameraAndMetaDescription(img *Image) string {
+	return fmt.Sprintf(
+		"%s, %s",
+		GetCameraDescription(img.CameraModel, img.Lens, img.FocalLength),
+		GetMetaDescription(img.ShutterSpeed, img.FNumber, img.ISO),
+	)
+}
+
+func GetAlbumImageCameraAndMetaDescription(img *AlbumWithImage) string {
+	return fmt.Sprintf(
+		"%s, %s",
+		GetCameraDescription(img.CameraModel, img.Lens, img.FocalLength),
+		GetMetaDescription(img.ShutterSpeed, img.FNumber, img.ISO),
+	)
+}

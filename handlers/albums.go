@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -68,7 +67,6 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 		images, _ := r.Db.ListAlbumFiles(params.AlbumSlug)
 
 		for _, img := range images {
-			metaDescription := fmt.Sprintf("%s, %s (%s' f/%.1f ISO %.0f)", img.CameraModel, img.Lens, img.ShutterSpeed, img.FNumber, img.ISO)
 
 			if len(img.Files) == 0 {
 				log.Printf("No files found for image %s\n", img.ImageId)
@@ -84,7 +82,7 @@ func SingleAlbumGetHandler(r *Resources) gin.HandlerFunc {
 				Width:         img.WidthPixels,
 				Height:        img.HeightPixels,
 				Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
-				Description:   metaDescription,
+				Description:   GetAlbumImageCameraAndMetaDescription(&img),
 			})
 		}
 

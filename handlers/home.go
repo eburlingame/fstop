@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -20,8 +19,6 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 		var imagesWithSrcSets []ImageWithSrcSet
 
 		for _, img := range images {
-			metaDescription := fmt.Sprintf("%s, %s (%s' f/%.1f ISO %.0f)", img.CameraModel, img.Lens, img.ShutterSpeed, img.FNumber, img.ISO)
-
 			smallImageFile := FindSizedImage(img.Files, 500)
 
 			if smallImageFile != nil {
@@ -32,7 +29,7 @@ func HomeGetHandler(r *Resources) gin.HandlerFunc {
 					Width:         img.WidthPixels,
 					Height:        img.HeightPixels,
 					Title:         img.DateTimeOriginal.Format("Monday, January _2, 2006"),
-					Description:   metaDescription,
+					Description:   GetImageCameraAndMetaDescription(&img),
 				})
 			}
 		}
@@ -98,8 +95,8 @@ func ImageGetHandler(r *Resources) gin.HandlerFunc {
 			"srcSet":       ComputeImageSrcSet(r.Config.S3BaseUrl, files),
 			"isAdmin":      isAdmin,
 			"date":         image.DateTimeOriginal.Format("Monday, January _2, 2006"),
-			"camera":       fmt.Sprintf("%s, %s", image.CameraModel, image.Lens),
-			"meta":         fmt.Sprintf("%s' f/%.1f ISO %.0f", image.ShutterSpeed, image.FNumber, image.ISO),
+			"camera":       GetImageCameraDescription(&image),
+			"meta":         GetImageMetaDescription(&image),
 		})
 	}
 }
